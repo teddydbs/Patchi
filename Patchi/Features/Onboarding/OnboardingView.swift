@@ -4,6 +4,7 @@ import SwiftData
 struct OnboardingView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
+    @Environment(\.colorScheme) private var colorScheme
     @State private var viewModel = OnboardingViewModel()
 
     var body: some View {
@@ -40,28 +41,32 @@ struct OnboardingView: View {
     }
 
     private var backgroundColor: Color {
+        let isDark = colorScheme == .dark
         switch viewModel.currentStep {
-        case .welcome: Color.patchiOrange
-        case .name: Color(red: 1.0, green: 0.95, blue: 0.88)
-        case .firstQuestion: Color(red: 0.93, green: 0.93, blue: 0.98)
-        case .reformulation: Color.mood(score: 4)
-        case .firstSquare: Color(red: 0.95, green: 0.97, blue: 0.95)
-        case .reminders: Color(red: 0.93, green: 0.95, blue: 1.0)
-        case .trial: Color(red: 1.0, green: 0.97, blue: 0.93)
-        case .account: Color(red: 0.96, green: 0.96, blue: 0.98)
+        case .welcome: return Color.patchiOrange
+        case .name: return isDark ? Color(red: 0.15, green: 0.13, blue: 0.1) : Color(red: 1.0, green: 0.95, blue: 0.88)
+        case .firstQuestion: return isDark ? Color(red: 0.12, green: 0.12, blue: 0.18) : Color(red: 0.93, green: 0.93, blue: 0.98)
+        case .reformulation: return Color.mood(score: 4)
+        case .firstSquare: return isDark ? Color(red: 0.1, green: 0.14, blue: 0.1) : Color(red: 0.95, green: 0.97, blue: 0.95)
+        case .reminders: return isDark ? Color(red: 0.1, green: 0.12, blue: 0.18) : Color(red: 0.93, green: 0.95, blue: 1.0)
+        case .trial: return isDark ? Color(red: 0.15, green: 0.13, blue: 0.1) : Color(red: 1.0, green: 0.97, blue: 0.93)
+        case .account: return isDark ? Color(red: 0.12, green: 0.12, blue: 0.14) : Color(red: 0.96, green: 0.96, blue: 0.98)
         }
     }
 
     // MARK: - Progress
 
     private var progressBar: some View {
-        GeometryReader { geo in
+        let useDark = [.name, .firstSquare, .reminders, .trial, .account]
+            .contains(viewModel.currentStep)
+
+        return GeometryReader { geo in
             Capsule()
-                .fill(Color.white.opacity(0.3))
+                .fill(useDark ? Color.black.opacity(0.12) : Color.white.opacity(0.3))
                 .frame(height: 4)
                 .overlay(alignment: .leading) {
                     Capsule()
-                        .fill(Color.white.opacity(0.8))
+                        .fill(useDark ? Color.patchiOrange : Color.white.opacity(0.9))
                         .frame(width: geo.size.width * viewModel.progress, height: 4)
                         .animation(.easeInOut(duration: 0.3), value: viewModel.progress)
                 }

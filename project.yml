@@ -31,3 +31,6 @@ targets:
     entitlements:
       path: Patchi/Patchi.entitlements
     dependencies: []
+    scheme:
+      testTargets: []
+      gatherCoverageData: false

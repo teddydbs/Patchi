@@ -46,12 +46,15 @@ final class OnboardingViewModel {
             reformulationText = ReformulationService.shared.reformulate(firstAnswer)
         }
 
+        Haptics.selection()
+
         withAnimation(.easeInOut(duration: 0.5)) {
             currentStep = next
         }
     }
 
     func complete(context: ModelContext, appState: AppState) {
+        Haptics.success()
         // Créer le User
         let user = User(firstName: firstName.trimmingCharacters(in: .whitespacesAndNewlines))
         user.onboardingCompleted = true

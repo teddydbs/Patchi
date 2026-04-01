@@ -56,6 +56,7 @@ final class CheckInViewModel {
 
     func goNext() {
         guard let nextStep = Step(rawValue: currentStep.rawValue + 1) else { return }
+        Haptics.selection()
 
         if currentStep == .details {
             // Générer la reformulation avant d'afficher l'écran
@@ -112,6 +113,7 @@ final class CheckInViewModel {
     // MARK: - Save
 
     func save(context: ModelContext) {
+        Haptics.success()
         let checkIn = CheckIn(
             moodScore: moodScore,
             activities: selectedActivities,

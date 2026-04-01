@@ -20,6 +20,11 @@ struct HomeView: View {
                     // Header avec date et Patchi
                     headerSection
 
+                    // Accueil Patchi si aucune entrée
+                    if checkIns.isEmpty && accountabilityEntries.isEmpty {
+                        welcomeCard
+                    }
+
                     // Calendrier semaine
                     weekCalendar
 
@@ -42,7 +47,7 @@ struct HomeView: View {
                 .padding(16)
             }
             .navigationBarHidden(true)
-            .sheet(isPresented: $showAccountability) {
+            .fullScreenCover(isPresented: $showAccountability) {
                 AccountabilityView()
             }
             .sheet(isPresented: $showSettings) {
@@ -77,6 +82,31 @@ struct HomeView: View {
                     .font(.title3)
                     .foregroundStyle(.secondary)
             }
+        }
+    }
+
+    // MARK: - Welcome Card (état vide post-onboarding)
+
+    private var welcomeCard: some View {
+        VStack(spacing: 16) {
+            PatchiWithBubble(
+                expression: .happy,
+                text: currentUserName != nil
+                    ? "Bienvenue \(currentUserName!). Ton journal t'attend."
+                    : "Bienvenue. Ton journal t'attend.",
+                patchiSize: .medium,
+                bubbleStyle: .emotional
+            )
+
+            Text("Fais ton premier check-in pour commencer à suivre ton humeur.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(20)
+        .background {
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.patchiOrange.opacity(0.06))
         }
     }
 

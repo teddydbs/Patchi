@@ -17,6 +17,7 @@ final class LetterViewModel {
     }
 
     func seal(context: ModelContext) {
+        Haptics.success()
         let letter = FutureLetter(content: content.trimmingCharacters(in: .whitespacesAndNewlines))
         context.insert(letter)
 

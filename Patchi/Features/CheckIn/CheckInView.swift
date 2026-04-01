@@ -58,9 +58,12 @@ struct CheckInView: View {
 
             // Indicateur de progression
             HStack(spacing: 6) {
+                let textColor = Color.moodText(score: viewModel.moodScore)
                 ForEach(CheckInViewModel.Step.allCases, id: \.rawValue) { step in
                     Capsule()
-                        .fill(step.rawValue <= viewModel.currentStep.rawValue ? Color.white : Color.white.opacity(0.3))
+                        .fill(step.rawValue <= viewModel.currentStep.rawValue
+                            ? textColor
+                            : textColor.opacity(0.25))
                         .frame(width: step.rawValue <= viewModel.currentStep.rawValue ? 20 : 8, height: 4)
                 }
             }
@@ -226,29 +229,31 @@ struct CheckInView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 30)
             } else {
-                Button {
-                    viewModel.goNext()
-                } label: {
-                    Text(viewModel.isLastInputStep ? "Terminer" : "Suivant")
-                        .font(.headline)
-                        .foregroundStyle(Color.mood(score: viewModel.moodScore))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color.moodText(score: viewModel.moodScore))
-                        .cornerRadius(16)
+                VStack(spacing: 12) {
+                    // Skip en haut pour les étapes optionnelles
+                    if viewModel.currentStep != .mood {
+                        Button("Passer cette étape") {
+                            viewModel.goNext()
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(Color.moodText(score: viewModel.moodScore).opacity(0.5))
+                    }
+
+                    // Bouton principal
+                    Button {
+                        viewModel.goNext()
+                    } label: {
+                        Text(viewModel.isLastInputStep ? "Terminer" : "Suivant")
+                            .font(.headline)
+                            .foregroundStyle(Color.mood(score: viewModel.moodScore))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color.moodText(score: viewModel.moodScore))
+                            .cornerRadius(16)
+                    }
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 30)
-
-                // Skip pour les étapes optionnelles
-                if viewModel.currentStep != .mood {
-                    Button("Passer") {
-                        viewModel.goNext()
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(Color.moodText(score: viewModel.moodScore).opacity(0.6))
-                    .padding(.bottom, 16)
-                }
             }
         }
     }

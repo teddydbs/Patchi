@@ -19,14 +19,6 @@ struct RootView: View {
                 appState.isOnboardingCompleted = true
                 appState.isPremium = user.isPremium
             }
-
-            // Sync StoreKit → SwiftData User quand le statut premium change
-            StoreKitService.shared.onPremiumChanged = { [weak appState] isPremium in
-                appState?.isPremium = isPremium
-                if let user = users.first {
-                    user.isPremium = isPremium
-                }
-            }
         }
     }
 }

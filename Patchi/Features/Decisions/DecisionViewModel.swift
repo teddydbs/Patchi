@@ -26,6 +26,7 @@ final class DecisionViewModel {
     // MARK: - Actions
 
     func save(context modelContext: ModelContext) {
+        Haptics.success()
         let newDecision = Decision(
             title: title.trimmingCharacters(in: .whitespacesAndNewlines),
             context: context.trimmingCharacters(in: .whitespacesAndNewlines),

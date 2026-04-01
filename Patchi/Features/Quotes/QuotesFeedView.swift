@@ -6,6 +6,7 @@ struct QuotesFeedView: View {
     @State private var selectedCategory: QuoteCategory?
     @State private var favorites: Set<Int> = QuotesFeedView.loadFavorites()
     @State private var currentIndex: Int = 0
+    @State private var cachedQuotes: [Quote]?
 
     var body: some View {
         ZStack {
@@ -39,6 +40,7 @@ struct QuotesFeedView: View {
             HStack(spacing: 8) {
                 FilterChip(label: "Tout", isSelected: selectedCategory == nil) {
                     selectedCategory = nil
+                    cachedQuotes = nil
                 }
 
                 ForEach(QuoteCategory.allCases) { category in
@@ -48,6 +50,7 @@ struct QuotesFeedView: View {
                         color: category.color
                     ) {
                         selectedCategory = category
+                        cachedQuotes = nil
                     }
                 }
 
@@ -65,16 +68,21 @@ struct QuotesFeedView: View {
     // MARK: - Data
 
     private var filteredQuotes: [Quote] {
-        var quotes: [Quote]
-
+        // Filtre par catégorie : pas de cache (liste courte)
         if let category = selectedCategory {
-            quotes = allQuotes.filter { $0.category == category }
-        } else if let latestMood = checkIns.first?.moodScore {
-            // Adapter selon l'humeur
+            return allQuotes.filter { $0.category == category }
+        }
+
+        // Mode "tout" : utiliser le cache pour ne pas re-shuffler
+        if let cached = cachedQuotes {
+            return cached
+        }
+
+        var quotes: [Quote]
+        if let latestMood = checkIns.first?.moodScore {
             let preferredCategories = latestMood <= 2
                 ? QuoteCategory.forLowMood()
                 : QuoteCategory.forHighMood()
-            // Mettre les catégories préférées en premier, puis le reste
             let preferred = allQuotes.filter { preferredCategories.contains($0.category) }
             let others = allQuotes.filter { !preferredCategories.contains($0.category) }
             quotes = preferred.shuffled() + others.shuffled()
@@ -82,6 +90,7 @@ struct QuotesFeedView: View {
             quotes = allQuotes.shuffled()
         }
 
+        DispatchQueue.main.async { cachedQuotes = quotes }
         return quotes
     }
 
@@ -128,9 +137,17 @@ private struct QuoteCardView: View {
 
     var body: some View {
         ZStack {
-            // Fond coloré selon catégorie
-            quote.category.color
-                .ignoresSafeArea()
+            // Fond doux avec teinte de la catégorie (cohérent avec le reste de l'app)
+            LinearGradient(
+                colors: [
+                    quote.category.color.opacity(0.15),
+                    quote.category.color.opacity(0.08)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .background(Color(.systemBackground))
+            .ignoresSafeArea()
 
             VStack(spacing: 32) {
                 Spacer()
@@ -140,15 +157,14 @@ private struct QuoteCardView: View {
                     .font(.custom("CrimsonPro-Italic", size: 26, relativeTo: .title))
                     .italic()
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
+                    .foregroundStyle(.primary)
                     .padding(.horizontal, 32)
 
                 // Auteur
                 Text("— \(quote.author)")
                     .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundStyle(.white.opacity(0.8))
+                    .foregroundStyle(.secondary)
 
                 Spacer()
 
@@ -157,13 +173,13 @@ private struct QuoteCardView: View {
                     Button(action: onToggleFavorite) {
                         Image(systemName: isFavorite ? "heart.fill" : "heart")
                             .font(.title2)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(isFavorite ? .red : quote.category.color)
                     }
 
                     Button(action: onShare) {
                         Image(systemName: "square.and.arrow.up")
                             .font(.title2)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(quote.category.color)
                     }
                 }
                 .padding(.bottom, 60)
@@ -178,9 +194,9 @@ private struct QuoteCardView: View {
                         .fontWeight(.medium)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
-                        .background(.white.opacity(0.2))
+                        .background(quote.category.color.opacity(0.15))
                         .cornerRadius(8)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(quote.category.color)
                     Spacer()
                 }
                 .padding(.horizontal, 20)

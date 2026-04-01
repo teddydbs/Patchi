@@ -2,6 +2,7 @@ import SwiftUI
 
 extension Color {
     /// Couleur de fond vive selon le score d'humeur (1-5)
+    /// Fonctionne en light et dark mode
     static func mood(score: Int) -> Color {
         switch score {
         case 1: Color(red: 0.1, green: 0.12, blue: 0.35)   // Bleu nuit profond
@@ -17,11 +18,12 @@ extension Color {
     static let moodStressed = Color(red: 1.0, green: 0.55, blue: 0.15)  // Orange vif
     static let moodAngry = Color(red: 0.95, green: 0.35, blue: 0.35)    // Rouge corail
 
-    /// Couleur de texte adaptée au fond d'humeur
+    /// Couleur de texte adaptée au fond d'humeur (fonctionne en dark mode aussi)
     static func moodText(score: Int) -> Color {
         switch score {
         case 1, 2: .white
-        default: Color(red: 0.15, green: 0.15, blue: 0.15)
+        case 3: Color(red: 0.2, green: 0.2, blue: 0.2)
+        default: Color(red: 0.1, green: 0.1, blue: 0.1)
         }
     }
 
@@ -35,4 +37,10 @@ extension Color {
 
     /// Orange Patchi
     static let patchiOrange = Color(red: 1.0, green: 0.6, blue: 0.2)
+
+    /// Fond de card adaptatif (light: blanc, dark: gris sombre)
+    static let cardBackground = Color(.systemBackground)
+
+    /// Fond de page adaptatif pour les écrans custom
+    static let pageBackground = Color(.systemGroupedBackground)
 }
