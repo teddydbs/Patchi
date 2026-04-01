@@ -1,4 +1,5 @@
 import StoreKit
+import SwiftData
 
 @Observable
 final class StoreKitService {
@@ -7,6 +8,9 @@ final class StoreKitService {
     private(set) var premiumProduct: Product?
     private(set) var isPremium = false
     private(set) var purchaseState: PurchaseState = .idle
+
+    /// Callback appelé quand le statut premium change — pour sync AppState + SwiftData
+    var onPremiumChanged: ((Bool) -> Void)?
 
     private let productId = "com.patchi.premium.yearly"
 
@@ -17,7 +21,10 @@ final class StoreKitService {
         case failed(String)
     }
 
-    private init() {
+    private init() {}
+
+    /// Appeler une seule fois au lancement de l'app
+    func start() {
         Task { await loadProducts() }
         Task { await refreshEntitlements() }
         Task { await listenForUpdates() }
@@ -28,9 +35,9 @@ final class StoreKitService {
     func loadProducts() async {
         do {
             let products = try await Product.products(for: [productId])
-            premiumProduct = products.first
+            await MainActor.run { premiumProduct = products.first }
         } catch {
-            print("Erreur chargement produits: \(error)")
+            print("[StoreKit] Erreur chargement produits: \(error)")
         }
     }
 
@@ -49,7 +56,7 @@ final class StoreKitService {
                 switch verification {
                 case .verified(let transaction):
                     await transaction.finish()
-                    isPremium = true
+                    setPremium(true)
                     purchaseState = .purchased
                 case .unverified(_, let error):
                     purchaseState = .failed("Vérification échouée: \(error.localizedDescription)")
@@ -77,16 +84,18 @@ final class StoreKitService {
     // MARK: - Entitlements
 
     func refreshEntitlements() async {
+        var foundPremium = false
         for await result in Transaction.currentEntitlements {
             switch result {
             case .verified(let transaction):
                 if transaction.productID == productId {
-                    await MainActor.run { isPremium = true }
+                    foundPremium = true
                 }
             case .unverified:
                 break
             }
         }
+        await MainActor.run { setPremium(foundPremium) }
     }
 
     // MARK: - Listen for updates
@@ -97,12 +106,19 @@ final class StoreKitService {
             case .verified(let transaction):
                 await transaction.finish()
                 if transaction.productID == productId {
-                    await MainActor.run { isPremium = true }
+                    await MainActor.run { setPremium(true) }
                 }
             case .unverified:
                 break
             }
         }
+    }
+
+    // MARK: - Single source of truth
+
+    private func setPremium(_ value: Bool) {
+        isPremium = value
+        onPremiumChanged?(value)
     }
 
     // MARK: - Helpers

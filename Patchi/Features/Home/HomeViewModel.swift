@@ -6,26 +6,39 @@ final class HomeViewModel {
     // MARK: - Daily Challenge
 
     var isDailyChallengeCompleted = false
+    private var cachedChallenge: DailyChallenge?
+    private var challengeDate: Date?
 
-    /// Génère un défi basé sur les activités récentes de l'utilisateur
+    /// Retourne un défi stable pour la journée (ne change pas à chaque render)
     func dailyChallenge(recentActivities: [Activity]) -> DailyChallenge {
-        // Sélectionner un défi lié aux activités récentes, sinon un générique
-        let relevantChallenges = recentActivities.flatMap { challengesForActivity($0) }
+        let today = Calendar.current.startOfDay(for: Date())
 
-        if let challenge = relevantChallenges.randomElement() {
-            return challenge
+        // Si on a déjà un défi pour aujourd'hui, le retourner
+        if let cached = cachedChallenge, challengeDate == today {
+            return cached
         }
-        return genericChallenges.randomElement()!
+
+        // Générer un nouveau défi déterministe basé sur le jour
+        let seed = Calendar.current.ordinality(of: .day, in: .era, for: today) ?? 0
+        let relevantChallenges = recentActivities.flatMap { challengesForActivity($0) }
+        let allOptions = relevantChallenges.isEmpty ? genericChallenges : relevantChallenges
+
+        let index = seed % allOptions.count
+        let challenge = allOptions[index]
+
+        cachedChallenge = challenge
+        challengeDate = today
+        return challenge
     }
 
     /// Temps restant jusqu'à minuit
     var timeUntilMidnight: String {
         let calendar = Calendar.current
         let now = Date()
-        guard let midnight = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: calendar.date(byAdding: .day, value: 1, to: now)!) else {
+        guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)) else {
             return ""
         }
-        let components = calendar.dateComponents([.hour, .minute], from: now, to: midnight)
+        let components = calendar.dateComponents([.hour, .minute], from: now, to: tomorrow)
         return "\(components.hour ?? 0)h\(String(format: "%02d", components.minute ?? 0))"
     }
 

@@ -63,10 +63,10 @@ struct MainTabView: View {
         .fullScreenCover(isPresented: $showCheckIn) {
             CheckInView()
         }
-        .sheet(isPresented: $showNewDecision) {
+        .fullScreenCover(isPresented: $showNewDecision) {
             NewDecisionView()
         }
-        .sheet(isPresented: $showWriteLetter) {
+        .fullScreenCover(isPresented: $showWriteLetter) {
             WriteLetterView()
         }
     }

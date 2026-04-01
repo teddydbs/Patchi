@@ -9,6 +9,9 @@ struct PatchiApp: App {
         WindowGroup {
             RootView()
                 .environment(appState)
+                .onAppear {
+                    setupStoreKit()
+                }
         }
         .modelContainer(for: [
             User.self,
@@ -17,5 +20,13 @@ struct PatchiApp: App {
             Decision.self,
             FutureLetter.self
         ])
+    }
+
+    private func setupStoreKit() {
+        let storeKit = StoreKitService.shared
+        storeKit.onPremiumChanged = { isPremium in
+            appState.isPremium = isPremium
+        }
+        storeKit.start()
     }
 }

@@ -20,7 +20,7 @@ class CheckIn {
     var moodScore: Int
     var title: String?
     var note: String?
-    
+
     init(date: Date, moodScore: Int) {
         self.id = UUID()
         self.date = date
@@ -55,7 +55,7 @@ struct PatchiApp: App {
 struct JournalView: View {
     // Toutes les entrées triées par date décroissante
     @Query(sort: \CheckIn.date, order: .reverse) var checkIns: [CheckIn]
-    
+
     var body: some View {
         List(checkIns) { checkIn in
             Text(checkIn.title ?? "Sans titre")
@@ -76,12 +76,12 @@ var pendingDecisions: [Decision]
 ```swift
 struct SomeView: View {
     @Environment(\.modelContext) private var modelContext
-    
+
     func saveCheckIn(_ checkIn: CheckIn) {
         modelContext.insert(checkIn)
         // SwiftData sauvegarde automatiquement
     }
-    
+
     func deleteCheckIn(_ checkIn: CheckIn) {
         modelContext.delete(checkIn)
     }
@@ -114,7 +114,7 @@ class HomeViewModel {
 // Dans la vue — utiliser @State (pas @StateObject)
 struct HomeView: View {
     @State private var viewModel = HomeViewModel()
-    
+
     var body: some View {
         Text(viewModel.greeting)
     }
@@ -211,7 +211,7 @@ let products = try await Product.products(for: ["com.patchi.premium.yearly"])
 @MainActor
 func purchase(_ product: Product) async throws {
     let result = try await product.purchase()
-    
+
     switch result {
     case .success(let verification):
         switch verification {
@@ -287,7 +287,7 @@ import Charts
 
 struct MoodChartView: View {
     var weeklyMoods: [MoodEntry] // { date: Date, score: Int }
-    
+
     var body: some View {
         Chart(weeklyMoods) { entry in
             LineMark(
@@ -334,7 +334,7 @@ Chart {
         )
         .foregroundStyle(.blue)
     }
-    
+
     RuleMark(y: .value("Moyenne", averageMood))
         .foregroundStyle(.orange)
         .lineStyle(StrokeStyle(dash: [5, 5]))
@@ -376,7 +376,7 @@ dateComponents.hour = 19
 dateComponents.minute = 0
 
 let trigger = UNCalendarNotificationTrigger(
-    dateMatching: dateComponents, 
+    dateMatching: dateComponents,
     repeats: true  // Récurrent
 )
 ```
@@ -386,11 +386,11 @@ let trigger = UNCalendarNotificationTrigger(
 ```swift
 let futureDate = Calendar.current.date(byAdding: .day, value: 30, to: decision.createdAt)!
 let components = Calendar.current.dateComponents(
-    [.year, .month, .day, .hour, .minute], 
+    [.year, .month, .day, .hour, .minute],
     from: futureDate
 )
 let trigger = UNCalendarNotificationTrigger(
-    dateMatching: components, 
+    dateMatching: components,
     repeats: false  // Une seule fois
 )
 ```
@@ -400,7 +400,7 @@ let trigger = UNCalendarNotificationTrigger(
 ```swift
 let request = UNNotificationRequest(
     identifier: "decision-\(decision.id.uuidString)-j30",
-    content: content, 
+    content: content,
     trigger: trigger
 )
 
@@ -443,7 +443,7 @@ import AuthenticationServices
 
 struct SignInWithAppleView: View {
     @Environment(\.modelContext) private var modelContext
-    
+
     var body: some View {
         SignInWithAppleButton(.signIn) { request in
             request.requestedScopes = [.fullName, .email]
@@ -494,10 +494,10 @@ class SpeechService: NSObject, ObservableObject {
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "fr-FR"))
     private var recognitionTask: SFSpeechRecognitionTask?
     private let audioEngine = AVAudioEngine()
-    
+
     @Published var transcribedText: String = ""
     @Published var isRecording: Bool = false
-    
+
     func requestPermission() async -> Bool {
         let speechStatus = await withCheckedContinuation { continuation in
             SFSpeechRecognizer.requestAuthorization { status in
@@ -506,29 +506,29 @@ class SpeechService: NSObject, ObservableObject {
         }
         return speechStatus == .authorized
     }
-    
+
     func startRecording() throws {
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
-        
+
         let inputNode = audioEngine.inputNode
         let recordingFormat = inputNode.outputFormat(forBus: 0)
-        
+
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
             request.append(buffer)
         }
-        
+
         audioEngine.prepare()
         try audioEngine.start()
         isRecording = true
-        
+
         recognitionTask = speechRecognizer?.recognitionTask(with: request) { [weak self] result, error in
             if let result = result {
                 self?.transcribedText = result.bestTranscription.formattedString
             }
         }
     }
-    
+
     func stopRecording() {
         audioEngine.stop()
         audioEngine.inputNode.removeTap(onBus: 0)
@@ -558,11 +558,11 @@ class BiometricService {
     func authenticate() async -> Bool {
         let context = LAContext()
         var error: NSError?
-        
+
         guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
             return false
         }
-        
+
         do {
             return try await context.evaluatePolicy(
                 .deviceOwnerAuthenticationWithBiometrics,
@@ -572,7 +572,7 @@ class BiometricService {
             return false
         }
     }
-    
+
     var biometricType: LABiometryType {
         let context = LAContext()
         _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
@@ -600,7 +600,7 @@ import SwiftUI
 struct PhotoPickerView: View {
     @State private var selectedItem: PhotosPickerItem?
     @State private var photoData: Data?
-    
+
     var body: some View {
         PhotosPicker(selection: $selectedItem, matching: .images) {
             Label("Ajouter une photo", systemImage: "photo")
@@ -628,7 +628,7 @@ import SwiftUI
 
 struct HeatmapWidget: Widget {
     let kind: String = "HeatmapWidget"
-    
+
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: HeatmapTimelineProvider()) { entry in
             HeatmapWidgetView(entry: entry)
@@ -643,11 +643,11 @@ struct HeatmapTimelineProvider: TimelineProvider {
     func placeholder(in context: Context) -> HeatmapEntry {
         HeatmapEntry(date: Date(), days: [])
     }
-    
+
     func getSnapshot(in context: Context, completion: @escaping (HeatmapEntry) -> Void) {
         completion(placeholder(in: context))
     }
-    
+
     func getTimeline(in context: Context, completion: @escaping (Timeline<HeatmapEntry>) -> Void) {
         // Charger les données depuis le App Group shared container
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
@@ -658,4 +658,4 @@ struct HeatmapTimelineProvider: TimelineProvider {
 
 ---
 
-*Document généré le 2026-04-01 — Sources : Apple Developer Documentation via context7*
+_Document généré le 2026-04-01 — Sources : Apple Developer Documentation via context7_

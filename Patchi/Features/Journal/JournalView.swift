@@ -13,17 +13,45 @@ struct JournalView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Calendrier
-                CalendarStripView(
-                    selectedDate: $viewModel.selectedDate,
-                    markedDates: viewModel.markedDates(
-                        checkIns: checkIns,
-                        accountabilityEntries: accountabilityEntries,
-                        decisions: decisions,
-                        letters: letters
+                // Toggle mode + calendrier
+                HStack {
+                    Button {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            viewModel.showAllEntries.toggle()
+                            if viewModel.showAllEntries {
+                                viewModel.selectedDate = nil
+                            } else {
+                                viewModel.selectedDate = Date()
+                            }
+                        }
+                    } label: {
+                        Text(viewModel.showAllEntries ? "Par jour" : "Tout voir")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(Color(.systemGray6)))
+                    }
+                    .padding(.leading, 16)
+                    Spacer()
+                }
+                .padding(.top, 4)
+
+                if !viewModel.showAllEntries {
+                    CalendarStripView(
+                        selectedDate: Binding(
+                            get: { viewModel.selectedDate ?? Date() },
+                            set: { viewModel.selectedDate = $0 }
+                        ),
+                        markedDates: viewModel.markedDates(
+                            checkIns: checkIns,
+                            accountabilityEntries: accountabilityEntries,
+                            decisions: decisions,
+                            letters: letters
+                        )
                     )
-                )
-                .padding(.vertical, 8)
+                    .padding(.vertical, 8)
+                }
 
                 // Compteurs
                 countersRow
@@ -135,28 +163,28 @@ struct JournalView: View {
 
         // Check-ins
         if viewModel.selectedFilter == .all || viewModel.selectedFilter == .checkIns {
-            for c in checkIns where isInSelectedDay(c.date) {
+            for c in checkIns where matchesDateFilter(c.date) {
                 entries.append(UnifiedEntry(id: "ci-\(c.id)", date: c.date, type: .checkIn, checkIn: c, accountability: nil, decision: nil, letter: nil))
             }
         }
 
         // Accountability
         if viewModel.selectedFilter == .all || viewModel.selectedFilter == .accountability {
-            for a in accountabilityEntries where isInSelectedDay(a.date) {
+            for a in accountabilityEntries where matchesDateFilter(a.date) {
                 entries.append(UnifiedEntry(id: "ac-\(a.id)", date: a.date, type: .accountability, checkIn: nil, accountability: a, decision: nil, letter: nil))
             }
         }
 
         // Decisions
         if viewModel.selectedFilter == .all || viewModel.selectedFilter == .decisions {
-            for d in decisions where isInSelectedDay(d.createdAt) {
+            for d in decisions where matchesDateFilter(d.createdAt) {
                 entries.append(UnifiedEntry(id: "de-\(d.id)", date: d.createdAt, type: .decision, checkIn: nil, accountability: nil, decision: d, letter: nil))
             }
         }
 
         // Letters
         if viewModel.selectedFilter == .all || viewModel.selectedFilter == .letters {
-            for l in letters where isInSelectedDay(l.writtenAt) {
+            for l in letters where matchesDateFilter(l.writtenAt) {
                 entries.append(UnifiedEntry(id: "le-\(l.id)", date: l.writtenAt, type: .letter, checkIn: nil, accountability: nil, decision: nil, letter: l))
             }
         }
@@ -164,8 +192,11 @@ struct JournalView: View {
         return entries.sorted { $0.date > $1.date }
     }
 
-    private func isInSelectedDay(_ date: Date) -> Bool {
-        date.isSameDay(as: viewModel.selectedDate)
+    private func matchesDateFilter(_ date: Date) -> Bool {
+        guard let selectedDate = viewModel.selectedDate else {
+            return true // Pas de filtre date = tout montrer
+        }
+        return date.isSameDay(as: selectedDate)
     }
 
     @ViewBuilder

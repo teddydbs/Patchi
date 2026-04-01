@@ -3,8 +3,9 @@ import SwiftData
 
 @Observable
 final class JournalViewModel {
-    var selectedDate: Date = Date()
+    var selectedDate: Date? = nil  // nil = toutes les entrées
     var selectedFilter: JournalFilter = .all
+    var showAllEntries: Bool = true  // true par défaut = chronologique
 
     enum JournalFilter: String, CaseIterable, Identifiable {
         case all

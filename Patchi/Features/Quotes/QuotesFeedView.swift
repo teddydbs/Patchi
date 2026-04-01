@@ -4,7 +4,7 @@ import SwiftData
 struct QuotesFeedView: View {
     @Query(sort: \CheckIn.date, order: .reverse) private var checkIns: [CheckIn]
     @State private var selectedCategory: QuoteCategory?
-    @State private var favorites: Set<Int> = []
+    @State private var favorites: Set<Int> = QuotesFeedView.loadFavorites()
     @State private var currentIndex: Int = 0
 
     var body: some View {
@@ -92,6 +92,7 @@ struct QuotesFeedView: View {
             favorites.insert(id)
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
+        Self.saveFavorites(favorites)
     }
 
     private func shareQuote(_ quote: Quote) {
@@ -101,6 +102,19 @@ struct QuotesFeedView: View {
            let window = windowScene.windows.first {
             window.rootViewController?.present(activityVC, animated: true)
         }
+    }
+
+    // MARK: - Persistence
+
+    private static let favoritesKey = "quoteFavorites"
+
+    static func loadFavorites() -> Set<Int> {
+        let array = UserDefaults.standard.array(forKey: favoritesKey) as? [Int] ?? []
+        return Set(array)
+    }
+
+    private static func saveFavorites(_ favorites: Set<Int>) {
+        UserDefaults.standard.set(Array(favorites), forKey: favoritesKey)
     }
 }
 

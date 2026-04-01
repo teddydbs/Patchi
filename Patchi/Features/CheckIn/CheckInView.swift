@@ -35,13 +35,7 @@ struct CheckInView: View {
                 checkInFooter
             }
         }
-        .onChange(of: viewModel.isCompleted) { _, completed in
-            if completed {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
-                    dismiss()
-                }
-            }
-        }
+        // L'utilisateur ferme manuellement via le bouton "Fermer"
     }
 
     // MARK: - Header
@@ -218,11 +212,19 @@ struct CheckInView: View {
     private var checkInFooter: some View {
         Group {
             if viewModel.currentStep == .reformulation {
-                // Sur l'écran de reformulation, juste un texte discret
-                Text("C'est noté.")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.moodText(score: viewModel.moodScore).opacity(0.6))
-                    .padding(.bottom, 40)
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Fermer")
+                        .font(.headline)
+                        .foregroundStyle(Color.mood(score: viewModel.moodScore))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.moodText(score: viewModel.moodScore))
+                        .cornerRadius(16)
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 30)
             } else {
                 Button {
                     viewModel.goNext()

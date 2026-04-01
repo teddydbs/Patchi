@@ -6,6 +6,7 @@ struct HomeView: View {
     @Query(sort: \CheckIn.date, order: .reverse) private var checkIns: [CheckIn]
     @Query(sort: \Decision.createdAt, order: .reverse) private var decisions: [Decision]
     @Query(sort: \AccountabilityEntry.date, order: .reverse) private var accountabilityEntries: [AccountabilityEntry]
+    @Query private var users: [User]
 
     @State private var viewModel = HomeViewModel()
     @State private var showAccountability = false
@@ -288,7 +289,7 @@ struct HomeView: View {
     // MARK: - Helpers
 
     private var currentUserName: String? {
-        nil // Sera connecté au model User plus tard
+        users.first?.firstName
     }
 
     private func hasMoodEntry(on date: Date) -> Bool {
