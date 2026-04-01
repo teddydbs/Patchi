@@ -10,6 +10,7 @@ struct HomeView: View {
     @State private var viewModel = HomeViewModel()
     @State private var showAccountability = false
     @State private var showSettings = false
+    @State private var showDecisions = false
 
     var body: some View {
         NavigationStack {
@@ -45,6 +46,9 @@ struct HomeView: View {
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
+            }
+            .sheet(isPresented: $showDecisions) {
+                DecisionListView()
             }
         }
     }
@@ -179,23 +183,33 @@ struct HomeView: View {
     }
 
     private var pendingDecisionsCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label("\(pendingDecisions.count) décision\(pendingDecisions.count > 1 ? "s" : "") en attente", systemImage: "clock.fill")
-                .font(.headline)
-
-            ForEach(pendingDecisions.prefix(3)) { decision in
+        Button { showDecisions = true } label: {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text(decision.title)
-                        .font(.subheadline)
-                        .lineLimit(1)
+                    Label("\(pendingDecisions.count) décision\(pendingDecisions.count > 1 ? "s" : "") en attente", systemImage: "clock.fill")
+                        .font(.headline)
                     Spacer()
-                    Text("J-\(decision.reviewAt30.daysSinceNow)")
+                    Image(systemName: "chevron.right")
                         .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(.tertiary)
+                }
+
+                ForEach(pendingDecisions.prefix(3)) { decision in
+                    HStack {
+                        Text(decision.title)
+                            .font(.subheadline)
+                            .lineLimit(1)
+                        Spacer()
+                        Text("J-\(decision.reviewAt30.daysSinceNow)")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.orange)
+                    }
                 }
             }
+            .foregroundStyle(.primary)
         }
+        .buttonStyle(.plain)
         .padding(16)
         .background {
             RoundedRectangle(cornerRadius: 16)
