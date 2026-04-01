@@ -1,0 +1,761 @@
+{
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Setup projet XcodeGen et structure de base",
+      "description": "Creer le project.yml XcodeGen, Info.plist, point d'entree PatchiApp.swift, et scaffolder toute la structure de fichiers du projet iOS.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [],
+      "details": "Creer project.yml pour XcodeGen avec target iOS 17+, SwiftUI lifecycle, bundle ID com.patchi.app. Configurer Info.plist avec les permissions necessaires (camera, microphone, speech recognition, notifications). Creer PatchiApp.swift avec @main et ModelContainer SwiftData. Structure: App/, Models/, Models/Enums/, Features/ (avec sous-dossiers pour chaque feature), Services/, Components/, Extensions/, Resources/.",
+      "testStrategy": "Le projet doit compiler et se lancer sur simulateur avec un ecran vide.",
+      "subtasks": [
+        {
+          "id": "1.1",
+          "title": "Creer project.yml XcodeGen",
+          "description": "Fichier de configuration XcodeGen avec target iOS 17+, SwiftUI, SwiftData, tous les frameworks necessaires.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": [],
+          "details": "",
+          "testStrategy": "xcodegen generate doit produire un .xcodeproj valide.",
+          "subtasks": []
+        },
+        {
+          "id": "1.2",
+          "title": "Creer PatchiApp.swift avec ModelContainer",
+          "description": "Point d'entree @main avec SwiftData ModelContainer configure pour tous les models.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["1.1"],
+          "details": "",
+          "testStrategy": "L'app se lance sans crash.",
+          "subtasks": []
+        },
+        {
+          "id": "1.3",
+          "title": "Creer toute la structure de dossiers et fichiers placeholder",
+          "description": "Creer tous les fichiers Swift vides avec les imports necessaires pour que le projet compile.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["1.1"],
+          "details": "",
+          "testStrategy": "Le projet compile sans erreur.",
+          "subtasks": []
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Models SwiftData - User et CheckIn",
+      "description": "Implementer les @Model User et CheckIn avec toutes leurs proprietes, relations, et validations.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["1"],
+      "details": "User: id UUID, firstName String, email String?, createdAt Date, isPremium Bool, premiumExpiresAt Date?, onboardingCompleted Bool, notificationSettings NotificationSettings, selectedTheme AppTheme, biometricLockEnabled Bool. CheckIn: id UUID, date Date, moodScore Int (1-5), activities [Activity], emotions [Emotion], title String?, note String?, photoData Data?, isVoiceEntry Bool, reformulation String?.",
+      "testStrategy": "Les models se persistent et se lisent correctement via SwiftData. Tests unitaires sur les validations.",
+      "subtasks": []
+    },
+    {
+      "id": "3",
+      "title": "Models SwiftData - AccountabilityEntry, Decision, FutureLetter",
+      "description": "Implementer les 3 @Model restants avec toutes leurs proprietes.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["1"],
+      "details": "AccountabilityEntry: id, date, missedAction, reason, isReasonValid, importance (1-5), heatmapColor, isSkipped. Decision: id, title, context, prediction, decision, importance (1-5), createdAt, reviewAt30, reviewAt90, verdict30, verdict90, whatHappened30, whatHappened90, status. FutureLetter: id, content, writtenAt, deliverAt (writtenAt + 6 mois), isDelivered, reply, repliedAt.",
+      "testStrategy": "Les models se persistent correctement. Les dates reviewAt30/90 sont calculees automatiquement.",
+      "subtasks": []
+    },
+    {
+      "id": "4",
+      "title": "Enums et structs de support",
+      "description": "Implementer toutes les enums (Emotion, Activity, HeatmapColor, Verdict, DecisionStatus, AppTheme, PatchiExpression) et les structs (NotificationSettings).",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["1"],
+      "details": "Emotion: 20 cas (Heureux, Beni, Bien, Chanceux, Excite, Confus, Ennuye, Gene, Partage, Nostalgique, Stresse, Depasse, Anxieux, Agite, Frustre, EnColere, Triste, Decu, Epuise, Seul). Activity: 20 cas (Travail, Famille, Amis, Sport, Sante, ProjetPerso, Repos, Voyage, Musique, Lecture, Cuisine, Nature, Meditation, Shopping, Jeux, Hobbies, Ecole, RelationAmoureuse, Sorties, Benevolat). Chaque enum avec displayName en francais, icone SF Symbol, et Codable.",
+      "testStrategy": "Tous les enums sont CaseIterable, Codable, et ont un displayName.",
+      "subtasks": []
+    },
+    {
+      "id": "5",
+      "title": "Extensions Color+Mood, Date+Helpers, View+Transitions",
+      "description": "Creer les extensions utilitaires pour les couleurs dynamiques, helpers de dates, et transitions d'animation.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["1", "4"],
+      "details": "Color+Mood: 7 couleurs VIVES mappees aux scores (1=bleu nuit profond, 2=violet doux, 3=beige chaud, 4=vert emeraude franc, 5=jaune soleil vif, stress=orange vif, colere=rouge corail). Toutes les couleurs doivent etre vives et saturees. Date+Helpers: startOfDay, endOfDay, daysAgo, isToday, isSameDay, formatted, plus30Days, plus90Days, plus6Months. View+Transitions: transitions lentes 400-600ms avec easing naturel.",
+      "testStrategy": "Color.mood(score: 3) retourne la bonne couleur. Date helpers fonctionnent correctement.",
+      "subtasks": []
+    },
+    {
+      "id": "6",
+      "title": "AppState, AppRouter et TabView principal",
+      "description": "Creer le systeme de navigation avec 5 tabs: Aujourd'hui, Citations, Nouveau (+), Stats, Journal.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["1"],
+      "details": "AppState @Observable: isOnboardingCompleted, currentUser, isPremium, selectedTab. AppRouter: gere la navigation entre les tabs et les ecrans modaux. TabView avec 5 onglets, bouton central + sureleve avec menu contextuel (Mood check-in, Nouvelle decision, Lettre au futur moi). Le bouton + doit etre visuellement distinct (sureleve, couleur accent).",
+      "testStrategy": "La navigation entre les 5 tabs fonctionne. Le bouton + ouvre le menu contextuel.",
+      "subtasks": [
+        {
+          "id": "6.1",
+          "title": "Creer AppState @Observable",
+          "description": "Etat global de l'app: onboarding, user, premium, tab selectionnee.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["1"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "6.2",
+          "title": "Creer AppRouter",
+          "description": "Gestion de la navigation et des routes.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["6.1"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "6.3",
+          "title": "Creer MainTabView avec 5 tabs et bouton central",
+          "description": "TabView personnalise avec bouton + sureleve au centre.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["6.2"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "PatchiView et systeme d'expressions",
+      "description": "Creer le composant reutilisable PatchiView avec enum PatchiExpression (20+ expressions), animation de respiration, et import des assets.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["1", "4"],
+      "details": "PatchiExpression enum: happy, sad, neutral, excited, tired, thinking, proud, worried, angry, surprised, sleeping, waving, celebrating, comforting, curious, determined, grateful, nostalgic, stressed, calm. PatchiView: accepte une expression, affiche l'image correspondante depuis les assets, animation d'oscillation verticale permanente (respiration), taille configurable. Pour le MVP, utiliser des placeholder SF Symbols tant que les assets finaux ne sont pas integres.",
+      "testStrategy": "PatchiView s'affiche avec chaque expression. L'animation de respiration est fluide a 60fps.",
+      "subtasks": [
+        {
+          "id": "7.1",
+          "title": "Creer PatchiExpression enum",
+          "description": "20+ expressions avec image name et description.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["4"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "7.2",
+          "title": "Creer PatchiView avec animation respiration",
+          "description": "Composant reutilisable avec oscillation verticale permanente.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["7.1"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "7.3",
+          "title": "Creer PatchiSpeechBubble",
+          "description": "Bulle de dialogue pour les phrases de Patchi, Crimson Pro italique.",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": ["7.2"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "ReformulationService",
+      "description": "Service 100% local qui transforme les mots-cles de l'utilisateur en phrases Patchi. Dictionary de mots-cles vers phrases. Analyse tokenisee du texte.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [],
+      "details": "Dictionnaire de mapping: sport/corps/gym -> 'Tu veux prendre soin de toi.', travail/boulot/job -> 'Le travail te pese.', famille/parents/enfants -> 'Ta famille compte beaucoup pour toi.', etc. Minimum 50 mappings couvrant les themes: corps, travail, relations, emotions, argent, sante, projets, repos, creativite, spiritualite. Analyse tokenisee: split le texte, cherche les mots-cles, retourne la phrase la plus pertinente. Si aucun match, retourner une phrase generique bienveillante.",
+      "testStrategy": "Le service retourne la bonne reformulation pour chaque mot-cle. Les phrases generiques sont pertinentes.",
+      "subtasks": []
+    },
+    {
+      "id": "9",
+      "title": "NotificationService",
+      "description": "Service de notifications pour les 5 types: soir, decision, J+30, lettre, dimanche. Pool de 20 formulations. Scheduling via UNCalendarNotificationTrigger.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["1"],
+      "details": "5 types de notifications: (1) Soir - pool de 20 formulations ('Comment s'est passee ta journee?', etc.), heure configurable. (2) Decision - mentionne le titre reel et le nombre de jours. (3) J+30 - speciale, differente visuellement. (4) Lettre - 6 mois jour pour jour. (5) Dimanche - 19h00 fixe. Gestion des permissions avec demande gracieuse. Double slider heure debut/fin + nombre de rappels quotidiens.",
+      "testStrategy": "Les notifications sont schedulees correctement. Les formulations sont variees. Les permissions sont gerees.",
+      "subtasks": [
+        {
+          "id": "9.1",
+          "title": "Implementer le wrapper UNUserNotificationCenter",
+          "description": "Demande de permissions, scheduling, suppression.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": [],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "9.2",
+          "title": "Ecrire les 20 formulations du soir + scheduling 5 types",
+          "description": "Pool de phrases variees et implementation du scheduling pour chaque type.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["9.1"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "title": "MoodSliderView",
+      "description": "Slider d'humeur de 1 a 5 avec visage Patchi anime et couleur de fond qui change en temps reel.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["5", "7"],
+      "details": "Slider continu de 1 a 5. Le visage de Patchi change progressivement selon le score (epuise -> en feu). La couleur de fond de l'ecran change en temps reel avec transition fluide 400ms. Labels sous le slider: Tres mal, Mal, Neutre, Bien, Tres bien. Haptic feedback a chaque changement de palier.",
+      "testStrategy": "Le slider change la couleur et l'expression de Patchi en temps reel. Transitions fluides.",
+      "subtasks": []
+    },
+    {
+      "id": "11",
+      "title": "ActivityGridView et EmotionGridView",
+      "description": "Grilles scrollables de 20 activites et 20 emotions selectionnables (jusqu'a 10 chacune).",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["4"],
+      "details": "ActivityGridView: grille 4 colonnes, chaque item = icone SF Symbol + label en francais. Selection multiple (max 10). Animation de selection. EmotionGridView: grille 4 colonnes, chaque item = visage Patchi mini + label. Selection multiple (max 10). Les deux grilles sont scrollables si necessaire.",
+      "testStrategy": "Selection/deselection fonctionne. Maximum 10 items selectionnables. Labels en francais.",
+      "subtasks": []
+    },
+    {
+      "id": "12",
+      "title": "CheckInView et CheckInViewModel complets",
+      "description": "Ecran de check-in complet assemblant MoodSlider, ActivityGrid, EmotionGrid, titre, note, photo, et reformulation Patchi.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["2", "8", "10", "11"],
+      "details": "Flow: MoodSlider -> ActivityGrid -> EmotionGrid -> Titre optionnel -> Note texte (avec bouton micro) -> Photo optionnelle (galerie ou camera) -> Validation -> Reformulation Patchi (3 sec puis disparait) -> Retour accueil. CheckInViewModel: sauvegarde via SwiftData, appelle ReformulationService, gere la photo via PhotosPicker.",
+      "testStrategy": "Un check-in complet se sauvegarde en base. La reformulation s'affiche. La photo est stockee.",
+      "subtasks": [
+        {
+          "id": "12.1",
+          "title": "Creer le flow CheckInView etape par etape",
+          "description": "Navigation entre les etapes du check-in avec animation.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["10", "11"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "12.2",
+          "title": "Creer CheckInViewModel avec persistence SwiftData",
+          "description": "Logique de sauvegarde, reformulation, gestion photo.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["2", "8"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "12.3",
+          "title": "Ecran de reformulation Patchi post-check-in",
+          "description": "Affichage mot par mot de la reformulation pendant 3 secondes.",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": ["7", "8"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "title": "SpeechService (entree vocale)",
+      "description": "Wrapper SFSpeechRecognizer avec gestion des permissions, transcription en temps reel, bouton micro dans les champs texte.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["1"],
+      "details": "SFSpeechRecognizer avec locale fr-FR. Bouton microphone reutilisable (VoiceInputButton). Transcription en temps reel affichee dans le champ texte. Gestion propre des permissions (microphone + speech recognition). Le texte transcrit est editable apres.",
+      "testStrategy": "La transcription fonctionne en francais. Les permissions sont gerees. Le bouton s'integre dans tous les champs texte.",
+      "subtasks": []
+    },
+    {
+      "id": "14",
+      "title": "HeatmapGridView et HeatmapService",
+      "description": "Composant heatmap 90 jours avec carres colores (rouge -> vert) et service de calcul des couleurs.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["3", "4", "5"],
+      "details": "HeatmapGridView: grille de 90 carres (13 colonnes x 7 lignes environ). Chaque carre colore selon HeatmapColor (rouge=raison non valable, orange=raison valable mais non fait, vert clair=accompli avec effort, vert fonce=accompli facilement). Intensite = importance 1-5 etoiles. Animation: carres apparaissent un par un de gauche a droite. HeatmapService: query SwiftData des 90 derniers jours d'AccountabilityEntry, calcule la couleur de chaque jour.",
+      "testStrategy": "La heatmap affiche les bonnes couleurs. L'animation est fluide. Les jours sans entree sont gris.",
+      "subtasks": []
+    },
+    {
+      "id": "15",
+      "title": "AccountabilityView et AccountabilityViewModel",
+      "description": "Ecran du soir avec question, texte libre, raison, jugement valable/non valable, option skip, rattrapage.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["3", "14"],
+      "details": "Question du soir: 'Qu'aurais-tu aime faire aujourd'hui que tu n'as pas fait?' Texte libre pour la reponse. Champ raison optionnel. Toggle valable/non valable. Importance 1-5 etoiles. Bouton 'Aujourd'hui tout allait bien' qui cree une entree positive (vert fonce). Si jour rate: le lendemain, l'app demande ce qui s'est passe hier avant le check-in du jour.",
+      "testStrategy": "L'entree se sauvegarde. Le skip cree une entree positive. Le rattrapage fonctionne.",
+      "subtasks": []
+    },
+    {
+      "id": "16",
+      "title": "NewDecisionView et formulaire de decision",
+      "description": "Formulaire pour creer une nouvelle decision: titre, contexte, prediction, decision prise, importance 1-5.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["3", "9"],
+      "details": "Formulaire avec: titre (obligatoire), contexte (texte libre: pourquoi cette decision?), prediction (qu'est-ce que tu penses qu'il va se passer?), decision prise (qu'est-ce que tu as decide?), importance (1-5 etoiles). A la sauvegarde: calculer reviewAt30 et reviewAt90, scheduler les notifications correspondantes via NotificationService.",
+      "testStrategy": "La decision se sauvegarde avec les bonnes dates de review. Les notifications sont schedulees.",
+      "subtasks": []
+    },
+    {
+      "id": "17",
+      "title": "DecisionListView et VerdictView",
+      "description": "Liste des decisions avec statut, et ecran de verdict (moment de verite) a J+30 et J+90.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["3", "7", "16"],
+      "details": "DecisionListView: liste filtrable par statut (en attente, reviewed 30, reviewed 90). Cards avec titre, importance, countdown vers prochain verdict. VerdictView (moment de verite): affiche la decision originale, la prediction, champ verdict (j'avais raison / partiellement / tort), champ texte 'ce qui s'est passe'. Patchi presente avec expression adaptee. Moment de conversion premium apres le premier verdict.",
+      "testStrategy": "Les decisions s'affichent par statut. Le verdict se sauvegarde. Patchi apparait.",
+      "subtasks": []
+    },
+    {
+      "id": "18",
+      "title": "WriteLetterView et ReadLetterView",
+      "description": "Ecrans pour ecrire une lettre au futur moi et la lire 6 mois plus tard.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["3", "7", "9"],
+      "details": "WriteLetterView: invitation mensuelle de Patchi, champ texte libre, bouton sceller. Apres envoi la lettre est verrouillee. deliverAt = writtenAt + 6 mois. Scheduler notification via NotificationService. ReadLetterView: animation d'ouverture (enveloppe qui s'ouvre), affichage du contenu avec date d'ecriture, Patchi presente ('La lettre est arrivee. Elle t'attendait.'). Bouton repondre: la reponse cree une nouvelle FutureLetter pour dans 6 mois.",
+      "testStrategy": "La lettre se sauvegarde et se verrouille. La notification est schedulee a 6 mois. La reponse cree une nouvelle lettre.",
+      "subtasks": []
+    },
+    {
+      "id": "19",
+      "title": "JournalView et EntryCardView",
+      "description": "Liste chronologique de toutes les entrees avec bande calendrier navigable et cards colorees.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["2", "3", "5"],
+      "details": "JournalView: liste scrollable d'entrees chronologiques (plus recentes en haut). Bande calendrier horizontale navigable en haut (CalendarStripView). Point de couleur sous chaque jour avec une entree. Compteur: X reflections, X check-ins, X photos. Filtrable par type (check-in, decision, lettre, accountability). EntryCardView: card arrondie coloree selon l'humeur du jour. Affiche: type, titre/resume, date, mood score. Historique 30 jours gratuit, illimite premium.",
+      "testStrategy": "Les entrees s'affichent chronologiquement. Le calendrier navigable fonctionne. Les couleurs correspondent a l'humeur.",
+      "subtasks": [
+        {
+          "id": "19.1",
+          "title": "Creer CalendarStripView",
+          "description": "Bande calendrier horizontale scrollable avec points de couleur.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["5"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "19.2",
+          "title": "Creer EntryCardView",
+          "description": "Card coloree pour chaque type d'entree.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["5"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "19.3",
+          "title": "Creer JournalView et JournalViewModel",
+          "description": "Liste, filtres, compteurs, limitation 30 jours gratuit.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["19.1", "19.2"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        }
+      ]
+    },
+    {
+      "id": "20",
+      "title": "StatsView et graphiques d'humeur",
+      "description": "Ecran stats avec heatmap, courbes d'humeur hebdo/mensuel, correlations simples, countdown insights.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["2", "14"],
+      "details": "StatsView layout avec sections: Heatmap 90 jours (reutiliser HeatmapGridView), Courbe hebdo (Swift Charts - humeur moyenne par jour sur 7 jours, activites frequentes en dessous), Courbe mensuelle (hauts et bas identifies sur 30 jours), Correlations simples gratuites ('Tu es souvent mieux quand tu bouges'), Countdown vers prochains insights (J+3, J+7, J+30). Correlations avancees en premium.",
+      "testStrategy": "Les graphiques s'affichent avec les bonnes donnees. Les correlations sont pertinentes.",
+      "subtasks": [
+        {
+          "id": "20.1",
+          "title": "Implementer MoodChartView avec Swift Charts",
+          "description": "Courbes hebdo et mensuelle.",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": ["2"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "20.2",
+          "title": "Implementer InsightService",
+          "description": "Correlations activites/humeur et countdown insights.",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": ["2"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "20.3",
+          "title": "Assembler StatsView complet",
+          "description": "Layout avec heatmap, charts, correlations, countdown.",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": ["14", "20.1", "20.2"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        }
+      ]
+    },
+    {
+      "id": "21",
+      "title": "QuotesFeedView et base de citations",
+      "description": "Feed swipeable plein ecran de citations avec grande typo italique, fond colore par categorie, favoris et partage.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["2", "5"],
+      "details": "Feed vertical swipeable (TabView avec .tabViewStyle(.page)). Chaque citation: grande typographie Crimson Pro italique, fond colore selon categorie (courage=orange, decision=bleu, soi=violet, relations=rose, travail=vert, nature=vert emeraude). Base de 100+ citations en francais en JSON embarque. Mapping humeur -> categorie (humeur basse -> courage/soi, humeur haute -> decision/travail). Bouton favori (coeur) + bouton partage (UIActivityViewController).",
+      "testStrategy": "Le swipe fonctionne. Les couleurs correspondent aux categories. Les favoris se sauvegardent.",
+      "subtasks": []
+    },
+    {
+      "id": "22",
+      "title": "HomeView (ecran Aujourd'hui)",
+      "description": "Ecran d'accueil avec date, bande calendrier semaine, defi quotidien, wisdom, citations, Patchi discrete.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["5", "7", "19"],
+      "details": "Date en Crimson Pro italique en haut. Bande calendrier de la semaine. Section defi quotidien avec countdown minuit. Wisdom hebdomadaire si applicable (card 'Mon apprentissage de la semaine: ___'). Citation du moment. Patchi discrete en haut a droite avec expression adaptee a l'humeur du dernier check-in. HomeViewModel: charge les donnees du jour, gere le defi et la wisdom.",
+      "testStrategy": "L'ecran affiche les bonnes donnees du jour. Le countdown fonctionne. Patchi change d'expression.",
+      "subtasks": []
+    },
+    {
+      "id": "23",
+      "title": "Defi quotidien et Wisdom hebdomadaire",
+      "description": "Composants defi du jour (action concrete + countdown + validation) et wisdom (phrase a completer + archivage).",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["2", "4"],
+      "details": "Defi quotidien: pool de defis lies aux activites de l'utilisateur. Pas des affirmations - des actions concretes ('Marche 15 minutes', 'Appelle quelqu'un que tu aimes'). Countdown jusqu'a minuit. Bouton valider/passer. La validation alimente la heatmap. Wisdom hebdomadaire: card speciale une fois par semaine. 'Mon apprentissage de la semaine: ___'. Texte libre. Archivee dans le journal apres validation.",
+      "testStrategy": "Le defi change chaque jour. Le countdown est precis. La wisdom s'archive.",
+      "subtasks": []
+    },
+    {
+      "id": "24",
+      "title": "Questions adaptatives",
+      "description": "Systeme de questions qui evoluent selon l'historique: meme question J+1-3, intentions J+3, pool J+4+.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["2", "8"],
+      "details": "J+1 a J+3: meme question chaque soir ('Qu'est-ce qui t'a manque aujourd'hui?'). Analyse des mots-cles avec ReformulationService. J+3: Patchi propose des intentions basees sur les mots recurrents ('Tu sembles penser souvent a ton corps. Tu veux qu'on suive ca?'). J+4+: pool de 20 formulations differentes selon les themes identifies. Templates intelligents, aucune IA. Le service detecte les mots-cles recurrents et adapte les questions.",
+      "testStrategy": "Les questions changent apres J+3. Les themes recurrents sont detectes.",
+      "subtasks": []
+    },
+    {
+      "id": "25",
+      "title": "Rituel du dimanche",
+      "description": "Session guidee hebdomadaire de 5-7 minutes le dimanche soir, avec Patchi qui pose des questions contextuelles basees sur la semaine.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["2", "7", "20"],
+      "details": "Notification dimanche 19h00. Mode special avec fond different. Patchi guide le bilan. L'app relit les entrees de la semaine et pose des questions dessus ('Lundi tu semblais epuise. Est-ce que ca a change quelque chose?'). 3-5 questions contextuelles. Resume de fin de session. Sauvegarde comme entree speciale dans le journal.",
+      "testStrategy": "Le rituel se declenche le dimanche. Les questions sont basees sur les vraies entrees de la semaine.",
+      "subtasks": []
+    },
+    {
+      "id": "26",
+      "title": "StoreKitService et gestion premium",
+      "description": "Service StoreKit 2 pour l'abonnement premium: produits, trial 7 jours sans CB, verification des entitlements.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["1"],
+      "details": "StoreKitService @Observable: charger les produits depuis App Store Connect. introductoryOffer pour trial 7 jours sans CB. Transaction.currentEntitlements verifie a chaque lancement. Transaction.updates ecoute en continu. Gestion de la restauration d'achats. PremiumView: ecran sobre pour l'offre premium ('7 jours pour voir si ca te parle. Pas de carte bancaire.'). Bouton Essayer + lien Continuer sans abonnement.",
+      "testStrategy": "Le flow d'achat fonctionne en sandbox. Les entitlements sont verifies. La restauration fonctionne.",
+      "subtasks": []
+    },
+    {
+      "id": "27",
+      "title": "PremiumGateView et verrouillage features",
+      "description": "Composant reutilisable pour bloquer l'acces aux features premium avec CTA de conversion.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["26"],
+      "details": "PremiumGateView: overlay semi-transparent sur le contenu premium. Icone cadenas. Message sobre ('Disponible avec Patchi Premium'). Bouton vers PremiumView. Utilise comme wrapper: PremiumGate { AdvancedStatsView() }. Features a gater: historique illimite, recherche, correlations avancees, citations personnalisees, widgets, verrou biometrique, cloud sync, themes.",
+      "testStrategy": "Le gate bloque l'acces pour les users gratuits. Le CTA mene a PremiumView.",
+      "subtasks": []
+    },
+    {
+      "id": "28",
+      "title": "Sign in with Apple",
+      "description": "Implementation de Sign in with Apple via AuthenticationServices, integre dans l'onboarding et les settings.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["2"],
+      "details": "ASAuthorizationAppleIDProvider pour le flow de connexion. Sauvegarder le userIdentifier et les infos dans le model User. Bouton SignInWithAppleButton natif. Verifier le credential au lancement. Integrer dans l'etape 8 de l'onboarding et dans les settings.",
+      "testStrategy": "Le flow Sign in with Apple fonctionne. Les infos sont sauvegardees dans User.",
+      "subtasks": []
+    },
+    {
+      "id": "29",
+      "title": "SettingsView complet",
+      "description": "Page de parametres avec notifications, theme, verrou biometrique, compte, premium, a propos.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["9", "26", "28"],
+      "details": "Sections: Compte (email, Sign in with Apple, deconnexion), Notifications (NotificationSettingsView avec double slider heure debut/fin, nombre de rappels), Apparence (theme, mode sombre auto), Securite (verrou biometrique Face ID/Touch ID - premium), Premium (statut, gerer l'abonnement), A propos (version, mentions legales, politique de confidentialite).",
+      "testStrategy": "Tous les parametres se sauvegardent. Les notifications se reconfigurent. Le verrou biometrique fonctionne.",
+      "subtasks": [
+        {
+          "id": "29.1",
+          "title": "Creer NotificationSettingsView",
+          "description": "Double slider heure debut/fin + nombre de rappels.",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": ["9"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "29.2",
+          "title": "Creer BiometricService et integration",
+          "description": "Wrapper LocalAuthentication pour Face ID / Touch ID.",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": ["26"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "29.3",
+          "title": "Assembler SettingsView avec toutes les sections",
+          "description": "Layout complet avec navigation vers sous-ecrans.",
+          "status": "pending",
+          "priority": "medium",
+          "dependencies": ["29.1", "29.2", "28"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        }
+      ]
+    },
+    {
+      "id": "30",
+      "title": "OnboardingView complet 8 etapes",
+      "description": "Flow d'onboarding en 8 ecrans avec Patchi, valeur immediate, et creation de compte apres la premiere entree.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["7", "8", "9", "12", "14", "26", "28"],
+      "details": "8 etapes: (1) Patchi apparait - plein ecran colore, Patchi flotte, 'Salut. Moi c'est Patchi.' Bouton 'Salut Patchi!'. (2) Prenom - 'Et toi, comment tu t'appelles?' Champ texte unique. (3) Premiere question - grande typo italique, 'Aujourd'hui, qu'est-ce qui t'a manque?' Texte libre. (4) Reformulation - Patchi reformule, grande typo fond colore, 3 secondes. (5) Premier carre - heatmap vide avec 1 carre allume, 'Jour 1. Reviens demain.' (6) Rappels - double slider + nombre. 'Je t'enverrai un signe quand c'est l'heure.' (7) Offre essai - sobre, '7 jours pour voir si ca te parle. Pas de carte bancaire.' (8) Creation compte - email + Sign in with Apple.",
+      "testStrategy": "Le flow complet fonctionne de A a Z. Les donnees de l'etape 3 sont sauvegardees. Le compte est cree.",
+      "subtasks": [
+        {
+          "id": "30.1",
+          "title": "Ecrans 1-2: Patchi + prenom",
+          "description": "Premier contact avec Patchi et saisie du prenom.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["7"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "30.2",
+          "title": "Ecrans 3-4: Premiere question + reformulation",
+          "description": "Question ouverte et reformulation Patchi.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["8"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "30.3",
+          "title": "Ecran 5: Premier carre heatmap",
+          "description": "Heatmap vide avec un seul carre allume.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["14"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "30.4",
+          "title": "Ecran 6: Configuration rappels",
+          "description": "Double slider + nombre de rappels.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["9"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        },
+        {
+          "id": "30.5",
+          "title": "Ecrans 7-8: Offre essai + creation compte",
+          "description": "Offre premium sobre + Sign in with Apple.",
+          "status": "pending",
+          "priority": "high",
+          "dependencies": ["26", "28"],
+          "details": "",
+          "testStrategy": "",
+          "subtasks": []
+        }
+      ]
+    },
+    {
+      "id": "31",
+      "title": "Typographie Crimson Pro + polish visuel",
+      "description": "Integrer la police Crimson Pro italique pour les titres et elements emotionnels. SF Pro pour l'interface.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["6"],
+      "details": "Telecharger et integrer Crimson Pro (Google Fonts, licence OFL). Utiliser pour: titres, questions de Patchi, citations, reformulations, dates. SF Pro (systeme) pour: labels, data, boutons, interface. Creer des extensions Font pour faciliter l'usage: .patchiTitle, .patchiBody, .patchiQuote, .interfaceLabel, etc.",
+      "testStrategy": "Crimson Pro s'affiche correctement. Les extensions Font fonctionnent.",
+      "subtasks": []
+    },
+    {
+      "id": "32",
+      "title": "Animations et transitions",
+      "description": "Implementer toutes les animations: transitions lentes 400-600ms, heatmap progressive, reformulation mot par mot, Patchi respiration, mode jour/nuit.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["7", "14"],
+      "details": "Transitions lentes et organiques 400-600ms avec easing naturel (.easeInOut ou custom spring). Heatmap: carres apparaissent un par un de gauche a droite (staggered animation). Reformulation: texte apparait mot par mot. Changement couleur humeur: transition fluide .animation(.easeInOut(duration: 0.4)). Patchi: legere oscillation verticale permanente. Mode jour/nuit: interface s'assombrit legerement le soir (basee sur l'heure).",
+      "testStrategy": "Toutes les animations sont a 60fps. Les transitions sont fluides et naturelles.",
+      "subtasks": []
+    },
+    {
+      "id": "33",
+      "title": "Accessibilite (VoiceOver, Dynamic Type)",
+      "description": "Support complet VoiceOver et Dynamic Type sur tous les ecrans.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["30"],
+      "details": "VoiceOver: labels accessibles sur tous les controles interactifs, descriptions pour les images Patchi, annonces pour les changements de couleur, navigation logique. Dynamic Type: toutes les tailles de texte s'adaptent, layouts flexibles, ScrollView si necessaire. Contrastes: verifier que les couleurs vives ont assez de contraste avec le texte.",
+      "testStrategy": "VoiceOver navigue correctement dans tous les ecrans. Dynamic Type XXL ne casse pas les layouts.",
+      "subtasks": []
+    },
+    {
+      "id": "34",
+      "title": "Phrases de Patchi - toutes les formulations",
+      "description": "Ecrire toutes les phrases de Patchi pour chaque contexte: reformulations, notifications, insights, moments de verite, onboarding.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": [],
+      "details": "Ton: tutoie, sobre et directe, bienveillante mais pas condescendante, ne felicite pas pour rien. Contextes: (1) Reformulations check-in (50+ mappings mot-cle -> phrase), (2) Notifications soir (20 formulations), (3) Notifications decision (templates avec variables), (4) Insights J+3, J+7, J+30 (10+ par palier), (5) Moments de verite (5-10 phrases), (6) Onboarding (8 phrases fixes), (7) Rituel dimanche (questions templates), (8) Phrases generiques bienveillantes (10+). Exemples: 'C'est note.', 'Tu y es. Reviens demain.', '30 jours. Tu avais vu juste?', 'He. C'est ok de pas avoir tout reussi.'",
+      "testStrategy": "Toutes les phrases sont en francais correct. Le ton est coherent. Chaque contexte a assez de formulations.",
+      "subtasks": []
+    },
+    {
+      "id": "35",
+      "title": "Base de donnees de citations (100+)",
+      "description": "Creer le fichier JSON de 100+ citations en francais, categorisees et avec auteur.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": [],
+      "details": "100+ citations en francais. Categories: courage, decision, soi, relations, travail, nature. Format JSON: [{id, text, author, category}]. Melange de: philosophes francais (Camus, Sartre, Montaigne), ecrivains (Saint-Exupery, Hugo), penseurs universels traduits, proverbes. Toutes les citations doivent etre verifiees et correctement attribuees.",
+      "testStrategy": "Le JSON est valide. Chaque categorie a au moins 15 citations. Les attributions sont correctes.",
+      "subtasks": []
+    },
+    {
+      "id": "36",
+      "title": "Pool de defis quotidiens",
+      "description": "Creer le pool de defis quotidiens lies aux activites, concrets et actionnables.",
+      "status": "pending",
+      "priority": "low",
+      "dependencies": ["4"],
+      "details": "Pool de 50+ defis concrets lies aux 20 activites. Pas des affirmations - des actions reelles. Exemples: Sport -> 'Marche 15 minutes aujourd'hui', Famille -> 'Appelle quelqu'un de ta famille', Lecture -> 'Lis 10 pages de n'importe quel livre', Meditation -> 'Prends 5 minutes pour ne rien faire'. Le service selectionne un defi different chaque jour, pondere par les activites recentes de l'utilisateur.",
+      "testStrategy": "Les defis sont concrets et varies. Le defi change chaque jour.",
+      "subtasks": []
+    },
+    {
+      "id": "37",
+      "title": "Edition des entrees (24h)",
+      "description": "Permettre la modification des entrees jusqu'a 24h apres creation, puis verrouiller.",
+      "status": "pending",
+      "priority": "low",
+      "dependencies": ["19"],
+      "details": "Bouton editer sur les EntryCardView si l'entree a moins de 24h. Apres 24h, l'entree est en lecture seule. Afficher un indicateur 'Modifiable pendant encore Xh'. Fonctionnel pour CheckIn et AccountabilityEntry.",
+      "testStrategy": "L'edition fonctionne avant 24h. Le verrouillage s'active apres 24h.",
+      "subtasks": []
+    },
+    {
+      "id": "38",
+      "title": "Streak, compteurs et progression",
+      "description": "Compteur de reviews, streak de jours consecutifs, palier J+30.",
+      "status": "pending",
+      "priority": "low",
+      "dependencies": ["2", "3"],
+      "details": "Compteur positif et cumulatif: 'Tu as reviewe X decisions cette annee.' Pas de punition si un jour est rate. Palier J+30: 30 jours consecutifs debloquent une Wisdom speciale de Patchi. Affiche dans le profil/stats.",
+      "testStrategy": "Les compteurs s'incrementent. Le palier J+30 se declenche au bon moment.",
+      "subtasks": []
+    },
+    {
+      "id": "39",
+      "title": "Integration et tests end-to-end",
+      "description": "Tester le flow complet: onboarding -> check-in quotidien -> accountability -> decisions -> stats -> premium.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["30"],
+      "details": "Tester: (1) Onboarding complet de A a Z, (2) Check-in mood + reformulation, (3) Accountability soir + heatmap, (4) Creer une decision + notification, (5) Ecrire une lettre, (6) Consulter le journal et les stats, (7) Flow premium (essai, achat, gate), (8) Settings et notifications, (9) Rituel du dimanche. Verifier la coherence des donnees entre les ecrans.",
+      "testStrategy": "Tous les flows principaux fonctionnent sans crash. Les donnees sont coherentes.",
+      "subtasks": []
+    },
+    {
+      "id": "40",
+      "title": "Preparation App Store",
+      "description": "Screenshots, description, mots-cles, categorie, privacy policy, configuration App Store Connect.",
+      "status": "pending",
+      "priority": "low",
+      "dependencies": ["39"],
+      "details": "Screenshots pour iPhone 15 Pro et iPhone SE. Description App Store en francais (4000 caracteres max). Mots-cles ASO. Categorie: Health & Fitness ou Lifestyle. Privacy policy (aucune donnee collectee par des tiers). Age rating. Configurer StoreKit dans App Store Connect (produit premium, pricing, trial).",
+      "testStrategy": "Tous les assets sont aux bonnes dimensions. La description est complete. Le produit StoreKit est configure.",
+      "subtasks": []
+    }
+  ]
+}
