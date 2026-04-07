@@ -16,6 +16,7 @@ final class Decision {
     var verdict90Raw: String?
     var whatHappened30: String?
     var whatHappened90: String?
+    var confidence: Int?
     var statusRaw: String
 
     var verdict30: Verdict? {
@@ -38,14 +39,15 @@ final class Decision {
         context: String,
         prediction: String,
         decision: String,
-        importance: Int = 3
+        importance: Int = 3,
+        confidence: Int? = nil
     ) {
         self.id = UUID()
         self.title = title
         self.context = context
         self.prediction = prediction
         self.decision = decision
-        self.importance = importance
+        self.importance = min(max(importance, 1), 5)
         self.createdAt = Date()
         self.reviewAt30 = Calendar.current.date(byAdding: .day, value: 30, to: Date())!
         self.reviewAt90 = Calendar.current.date(byAdding: .day, value: 90, to: Date())!
@@ -53,6 +55,7 @@ final class Decision {
         self.verdict90Raw = nil
         self.whatHappened30 = nil
         self.whatHappened90 = nil
+        self.confidence = confidence
         self.statusRaw = DecisionStatus.pending.rawValue
     }
 }

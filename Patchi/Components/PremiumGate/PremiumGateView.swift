@@ -40,7 +40,7 @@ struct PremiumGate<Content: View>: View {
                             .padding(.horizontal, 24)
                             .padding(.vertical, 12)
                             .background(Color.patchiOrange)
-                            .cornerRadius(12)
+                            .clipShape(RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous))
                     }
                 }
                 .padding(24)
@@ -118,7 +118,7 @@ struct PremiumView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(Color.patchiOrange)
-                        .cornerRadius(16)
+                        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.button, style: .continuous))
                     }
                     .padding(.horizontal, 20)
 

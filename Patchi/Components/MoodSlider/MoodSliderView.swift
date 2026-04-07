@@ -18,7 +18,7 @@ struct MoodSliderView: View {
             .animation(.easeOut(duration: 0.2), value: isDragging)
 
             // Label d'humeur
-            Text(moodLabels[moodScore - 1])
+            Text(moodLabels[safe: moodScore - 1] ?? "Neutre")
                 .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundStyle(Color.moodText(score: moodScore))

@@ -36,7 +36,7 @@ final class CheckIn {
     ) {
         self.id = UUID()
         self.date = date
-        self.moodScore = moodScore
+        self.moodScore = min(max(moodScore, 1), 5)
         self.activitiesRaw = activities.map(\.rawValue)
         self.emotionsRaw = emotions.map(\.rawValue)
         self.title = title

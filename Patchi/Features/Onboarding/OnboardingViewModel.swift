@@ -55,13 +55,20 @@ final class OnboardingViewModel {
 
     func complete(context: ModelContext, appState: AppState) {
         Haptics.success()
-        // Créer le User
-        let user = User(firstName: firstName.trimmingCharacters(in: .whitespacesAndNewlines))
+        // Réutiliser un User existant ou en créer un nouveau
+        let existingUsers = (try? context.fetch(FetchDescriptor<User>())) ?? []
+        let user: User
+        if let existing = existingUsers.first {
+            user = existing
+            user.firstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
+            user = User(firstName: firstName.trimmingCharacters(in: .whitespacesAndNewlines))
+            context.insert(user)
+        }
         user.onboardingCompleted = true
         user.notificationStartHour = notificationStartHour
         user.notificationEndHour = notificationEndHour
         user.notificationCount = notificationCount
-        context.insert(user)
 
         // Créer la première entrée accountability depuis la réponse onboarding
         if !firstAnswer.isEmpty {

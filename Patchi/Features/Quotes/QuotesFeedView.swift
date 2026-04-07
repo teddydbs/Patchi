@@ -3,21 +3,19 @@ import SwiftData
 
 struct QuotesFeedView: View {
     @Query(sort: \CheckIn.date, order: .reverse) private var checkIns: [CheckIn]
-    @State private var selectedCategory: QuoteCategory?
-    @State private var favorites: Set<Int> = QuotesFeedView.loadFavorites()
-    @State private var currentIndex: Int = 0
-    @State private var cachedQuotes: [Quote]?
+    @State private var viewModel = QuotesViewModel()
 
     var body: some View {
         ZStack {
             // Feed swipeable plein écran
-            TabView(selection: $currentIndex) {
-                ForEach(Array(filteredQuotes.enumerated()), id: \.element.id) { index, quote in
+            TabView(selection: $viewModel.currentIndex) {
+                let quotes = viewModel.filteredQuotes(latestMoodScore: checkIns.first?.moodScore)
+                ForEach(Array(quotes.enumerated()), id: \.element.id) { index, quote in
                     QuoteCardView(
                         quote: quote,
-                        isFavorite: favorites.contains(quote.id),
-                        onToggleFavorite: { toggleFavorite(quote.id) },
-                        onShare: { shareQuote(quote) }
+                        isFavorite: viewModel.favorites.contains(quote.id),
+                        onToggleFavorite: { viewModel.toggleFavorite(quote.id) },
+                        onShare: { viewModel.shareQuote(quote) }
                     )
                     .tag(index)
                 }
@@ -37,93 +35,32 @@ struct QuotesFeedView: View {
 
     private var filterBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                FilterChip(label: "Tout", isSelected: selectedCategory == nil) {
-                    selectedCategory = nil
-                    cachedQuotes = nil
+            HStack(spacing: DS.Spacing.sm) {
+                FilterChipDS(label: "Tout", isSelected: viewModel.selectedCategory == nil) {
+                    viewModel.selectedCategory = nil
+                    viewModel.clearCache()
                 }
 
                 ForEach(QuoteCategory.allCases) { category in
-                    FilterChip(
+                    FilterChipDS(
                         label: category.displayName,
-                        isSelected: selectedCategory == category,
+                        isSelected: viewModel.selectedCategory == category,
                         color: category.color
                     ) {
-                        selectedCategory = category
-                        cachedQuotes = nil
+                        viewModel.selectedCategory = category
+                        viewModel.clearCache()
                     }
                 }
 
-                FilterChip(label: "♥ Favoris", isSelected: false) {
+                FilterChipDS(label: "Favoris", icon: "heart.fill", isSelected: false) {
                     // TODO: Vue favoris
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.horizontal, DS.Spacing.lg)
+            .padding(.vertical, DS.Spacing.sm)
         }
         .background(.ultraThinMaterial)
         .safeAreaPadding(.top)
-    }
-
-    // MARK: - Data
-
-    private var filteredQuotes: [Quote] {
-        // Filtre par catégorie : pas de cache (liste courte)
-        if let category = selectedCategory {
-            return allQuotes.filter { $0.category == category }
-        }
-
-        // Mode "tout" : utiliser le cache pour ne pas re-shuffler
-        if let cached = cachedQuotes {
-            return cached
-        }
-
-        var quotes: [Quote]
-        if let latestMood = checkIns.first?.moodScore {
-            let preferredCategories = latestMood <= 2
-                ? QuoteCategory.forLowMood()
-                : QuoteCategory.forHighMood()
-            let preferred = allQuotes.filter { preferredCategories.contains($0.category) }
-            let others = allQuotes.filter { !preferredCategories.contains($0.category) }
-            quotes = preferred.shuffled() + others.shuffled()
-        } else {
-            quotes = allQuotes.shuffled()
-        }
-
-        DispatchQueue.main.async { cachedQuotes = quotes }
-        return quotes
-    }
-
-    private func toggleFavorite(_ id: Int) {
-        if favorites.contains(id) {
-            favorites.remove(id)
-        } else {
-            favorites.insert(id)
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        }
-        Self.saveFavorites(favorites)
-    }
-
-    private func shareQuote(_ quote: Quote) {
-        let text = "\"\(quote.text)\"\n— \(quote.author)\n\nvia Patchi"
-        let activityVC = UIActivityViewController(activityItems: [text], applicationActivities: nil)
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = windowScene.windows.first {
-            window.rootViewController?.present(activityVC, animated: true)
-        }
-    }
-
-    // MARK: - Persistence
-
-    private static let favoritesKey = "quoteFavorites"
-
-    static func loadFavorites() -> Set<Int> {
-        let array = UserDefaults.standard.array(forKey: favoritesKey) as? [Int] ?? []
-        return Set(array)
-    }
-
-    private static func saveFavorites(_ favorites: Set<Int>) {
-        UserDefaults.standard.set(Array(favorites), forKey: favoritesKey)
     }
 }
 
@@ -135,54 +72,85 @@ private struct QuoteCardView: View {
     let onToggleFavorite: () -> Void
     let onShare: () -> Void
 
+    private var gradientColors: [Color] {
+        switch quote.category {
+        case .courage: [Color(red: 0.15, green: 0.15, blue: 0.35), Color(red: 0.25, green: 0.2, blue: 0.5)]
+        case .decision: [Color(red: 0.2, green: 0.12, blue: 0.35), Color(red: 0.35, green: 0.15, blue: 0.45)]
+        case .soi: [Color(red: 0.1, green: 0.2, blue: 0.35), Color(red: 0.15, green: 0.3, blue: 0.45)]
+        case .relations: [Color(red: 0.3, green: 0.15, blue: 0.2), Color(red: 0.4, green: 0.2, blue: 0.3)]
+        case .travail: [Color(red: 0.15, green: 0.2, blue: 0.25), Color(red: 0.2, green: 0.25, blue: 0.35)]
+        case .nature: [Color(red: 0.1, green: 0.25, blue: 0.2), Color(red: 0.15, green: 0.35, blue: 0.25)]
+        }
+    }
+
     var body: some View {
         ZStack {
-            // Fond doux avec teinte de la catégorie (cohérent avec le reste de l'app)
+            // Fond gradient immersif (style Reflectly)
             LinearGradient(
-                colors: [
-                    quote.category.color.opacity(0.15),
-                    quote.category.color.opacity(0.08)
-                ],
+                colors: gradientColors,
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .background(Color(.systemBackground))
             .ignoresSafeArea()
 
-            VStack(spacing: 32) {
+            // Cercle décoratif subtil
+            Circle()
+                .fill(quote.category.color.opacity(0.08))
+                .frame(width: 300, height: 300)
+                .blur(radius: 60)
+                .offset(y: -40)
+
+            VStack(spacing: DS.Spacing.xxl) {
                 Spacer()
 
                 // Citation
-                Text(quote.text)
-                    .font(.custom("CrimsonPro-Italic", size: 26, relativeTo: .title))
-                    .italic()
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.primary)
-                    .padding(.horizontal, 32)
+                VStack(spacing: DS.Spacing.lg) {
+                    Text("\u{201C}")
+                        .font(.system(size: 48, weight: .bold, design: .serif))
+                        .foregroundStyle(.white.opacity(0.3))
 
-                // Auteur
-                Text("— \(quote.author)")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.secondary)
+                    Text(quote.text)
+                        .font(.patchiQuote(26))
+                        .italic()
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, DS.Spacing.xxl)
+
+                    HStack {
+                        Rectangle()
+                            .fill(.white.opacity(0.2))
+                            .frame(width: 32, height: 1)
+                        Text(quote.author.uppercased())
+                            .font(.system(size: 12, weight: .semibold))
+                            .tracking(2)
+                            .foregroundStyle(.white.opacity(0.6))
+                        Rectangle()
+                            .fill(.white.opacity(0.2))
+                            .frame(width: 32, height: 1)
+                    }
+                }
 
                 Spacer()
 
                 // Actions
-                HStack(spacing: 32) {
+                HStack(spacing: DS.Spacing.xxl) {
                     Button(action: onToggleFavorite) {
                         Image(systemName: isFavorite ? "heart.fill" : "heart")
                             .font(.title2)
-                            .foregroundStyle(isFavorite ? .red : quote.category.color)
+                            .foregroundStyle(isFavorite ? .red : .white.opacity(0.7))
+                            .frame(width: 56, height: 56)
+                            .background(Circle().fill(.white.opacity(0.1)))
                     }
 
                     Button(action: onShare) {
                         Image(systemName: "square.and.arrow.up")
                             .font(.title2)
-                            .foregroundStyle(quote.category.color)
+                            .foregroundStyle(.white.opacity(0.7))
+                            .frame(width: 56, height: 56)
+                            .background(Circle().fill(.white.opacity(0.1)))
                     }
                 }
-                .padding(.bottom, 60)
+                .padding(.bottom, DS.Spacing.xxl)
             }
 
             // Catégorie en bas à gauche
@@ -190,41 +158,18 @@ private struct QuoteCardView: View {
                 Spacer()
                 HStack {
                     Text(quote.category.displayName)
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(quote.category.color.opacity(0.15))
-                        .cornerRadius(8)
-                        .foregroundStyle(quote.category.color)
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(1)
+                        .padding(.horizontal, DS.Spacing.md)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(.white.opacity(0.12)))
+                        .foregroundStyle(.white.opacity(0.7))
                     Spacer()
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 20)
+                .padding(.horizontal, DS.Spacing.lg)
+                .padding(.bottom, DS.Spacing.lg)
             }
         }
     }
 }
 
-// MARK: - Filter Chip
-
-private struct FilterChip: View {
-    let label: String
-    let isSelected: Bool
-    var color: Color = .patchiOrange
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.caption)
-                .fontWeight(.medium)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background {
-                    Capsule().fill(isSelected ? color : Color(.systemGray5))
-                }
-                .foregroundStyle(isSelected ? .white : .primary)
-        }
-    }
-}

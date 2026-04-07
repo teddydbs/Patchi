@@ -31,7 +31,7 @@ final class AccountabilityEntry {
         self.missedAction = missedAction
         self.reason = reason
         self.isReasonValid = isReasonValid
-        self.importance = importance
+        self.importance = min(max(importance, 1), 5)
         self.heatmapColorRaw = heatmapColor.rawValue
         self.isSkipped = isSkipped
     }

@@ -6,7 +6,7 @@ extension Date {
     }
 
     var endOfDay: Date {
-        Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: self)!
+        Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: self) ?? self
     }
 
     var isToday: Bool {
@@ -22,19 +22,19 @@ extension Date {
     }
 
     func daysAgo(_ days: Int) -> Date {
-        Calendar.current.date(byAdding: .day, value: -days, to: self)!
+        Calendar.current.date(byAdding: .day, value: -days, to: self) ?? self
     }
 
     var plus30Days: Date {
-        Calendar.current.date(byAdding: .day, value: 30, to: self)!
+        Calendar.current.date(byAdding: .day, value: 30, to: self) ?? self
     }
 
     var plus90Days: Date {
-        Calendar.current.date(byAdding: .day, value: 90, to: self)!
+        Calendar.current.date(byAdding: .day, value: 90, to: self) ?? self
     }
 
     var plus6Months: Date {
-        Calendar.current.date(byAdding: .month, value: 6, to: self)!
+        Calendar.current.date(byAdding: .month, value: 6, to: self) ?? self
     }
 
     var daysUntilNow: Int {
@@ -45,19 +45,23 @@ extension Date {
         Calendar.current.dateComponents([.day], from: Date(), to: self).day ?? 0
     }
 
-    /// Format "Lundi 1 avril"
+    /// Format "Lundi 1 avril" (année courante) ou "Lundi 1 avril 2025" (autre année)
     var formattedLong: String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "fr_FR")
-        formatter.dateFormat = "EEEE d MMMM"
+        let currentYear = Calendar.current.component(.year, from: Date())
+        let selfYear = Calendar.current.component(.year, from: self)
+        formatter.dateFormat = currentYear == selfYear ? "EEEE d MMMM" : "EEEE d MMMM yyyy"
         return formatter.string(from: self).capitalized
     }
 
-    /// Format "1 avr."
+    /// Format "1 avr." (année courante) ou "1 avr. 2025" (autre année)
     var formattedShort: String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "fr_FR")
-        formatter.dateFormat = "d MMM"
+        let currentYear = Calendar.current.component(.year, from: Date())
+        let selfYear = Calendar.current.component(.year, from: self)
+        formatter.dateFormat = currentYear == selfYear ? "d MMM" : "d MMM yyyy"
         return formatter.string(from: self)
     }
 

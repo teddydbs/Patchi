@@ -100,7 +100,7 @@ struct OnboardingView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(.white)
-                    .cornerRadius(16)
+                    .clipShape(RoundedRectangle(cornerRadius: DS.Radius.button, style: .continuous))
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 40)
@@ -127,7 +127,7 @@ struct OnboardingView: View {
                 .padding(.vertical, 14)
                 .background {
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(Color(.systemBackground))
+                        .fill(Color.dsCard)
                 }
                 .padding(.horizontal, 40)
 
@@ -152,8 +152,8 @@ struct OnboardingView: View {
             TextEditor(text: $viewModel.firstAnswer)
                 .frame(height: 120)
                 .padding(12)
-                .background(Color(.systemBackground))
-                .cornerRadius(14)
+                .background(Color.dsCard)
+                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous))
                 .padding(.horizontal, 32)
 
             Spacer()
@@ -186,7 +186,7 @@ struct OnboardingView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(Color.white.opacity(0.3))
-                    .cornerRadius(16)
+                    .clipShape(RoundedRectangle(cornerRadius: DS.Radius.button, style: .continuous))
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 40)
@@ -208,7 +208,7 @@ struct OnboardingView: View {
 
                     ForEach(0..<6, id: \.self) { _ in
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(Color(.systemGray5))
+                            .fill(Color.dsBorder)
                             .frame(width: 24, height: 24)
                     }
                 }
@@ -281,7 +281,7 @@ struct OnboardingView: View {
             .padding(20)
             .background {
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.systemBackground))
+                    .fill(Color.dsCard)
             }
             .padding(.horizontal, 20)
 
@@ -314,7 +314,9 @@ struct OnboardingView: View {
 
             VStack(spacing: 12) {
                 Button {
-                    // TODO: Lancer le trial StoreKit
+                    Task {
+                        await StoreKitService.shared.purchase()
+                    }
                     viewModel.goNext()
                 } label: {
                     Text("Essayer gratuitement")
@@ -323,7 +325,7 @@ struct OnboardingView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(Color.patchiOrange)
-                        .cornerRadius(16)
+                        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.button, style: .continuous))
                 }
 
                 Button {
@@ -377,7 +379,7 @@ struct OnboardingView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(Color.patchiOrange)
-                    .cornerRadius(16)
+                    .clipShape(RoundedRectangle(cornerRadius: DS.Radius.button, style: .continuous))
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 40)
@@ -395,8 +397,8 @@ struct OnboardingView: View {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(viewModel.canGoNext ? Color.patchiOrange : Color(.systemGray4))
-                .cornerRadius(16)
+                .background(viewModel.canGoNext ? Color.patchiOrange : Color.dsBorder)
+                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.button, style: .continuous))
         }
         .disabled(!viewModel.canGoNext)
         .padding(.horizontal, 32)

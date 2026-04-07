@@ -7,13 +7,13 @@ struct ActivityGridView: View {
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 4)
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: DS.Spacing.md) {
             HStack {
                 Text("Qu'as-tu fait aujourd'hui ?")
-                    .font(.headline)
+                    .font(.system(size: DS.Font.body, weight: .semibold))
                 Spacer()
                 Text("\(selected.count)/\(maxSelection)")
-                    .font(.caption)
+                    .font(.system(size: DS.Font.caption, weight: .medium))
                     .foregroundStyle(.secondary)
             }
 
@@ -34,9 +34,9 @@ struct ActivityGridView: View {
             selected.remove(at: index)
         } else if selected.count < maxSelection {
             selected.append(activity)
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            Haptics.light()
         } else {
-            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            Haptics.warning()
         }
     }
 }
@@ -61,22 +61,18 @@ private struct ActivityCell: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
             .background {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.patchiOrange.opacity(0.15) : Color(.systemGray6))
+                RoundedRectangle(cornerRadius: DS.Radius.chip, style: .continuous)
+                    .fill(isSelected ? Color.patchiOrange.opacity(0.15) : Color.dsCard)
             }
             .overlay {
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(isSelected ? Color.patchiOrange : .clear, lineWidth: 2)
+                RoundedRectangle(cornerRadius: DS.Radius.chip, style: .continuous)
+                    .strokeBorder(isSelected ? Color.patchiOrange : Color.dsBorder, lineWidth: isSelected ? 2 : 1)
             }
-            .foregroundStyle(isSelected ? Color.patchiOrange : .primary)
+            .foregroundStyle(isSelected ? Color.patchiOrange : Color.dsTextPrimary)
         }
-        .buttonStyle(.plain)
-        .scaleEffect(isSelected ? 1.02 : 1.0)
-        .animation(.easeOut(duration: 0.15), value: isSelected)
+        .buttonStyle(SpringPressStyle())
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     struct PreviewWrapper: View {
@@ -86,6 +82,7 @@ private struct ActivityCell: View {
                 ActivityGridView(selected: $selected)
                     .padding()
             }
+            .background(Color.dsBackground)
         }
     }
     return PreviewWrapper()

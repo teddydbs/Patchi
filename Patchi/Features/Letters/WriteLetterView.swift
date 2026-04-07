@@ -8,9 +8,8 @@ struct WriteLetterView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Fond doux
-                Color(red: 1.0, green: 0.97, blue: 0.93)
-                    .ignoresSafeArea()
+                Color.dsBackground.ignoresSafeArea()
+                BlobBackground(colors: [.patchiOrange, .accentAmber], opacity: 0.08)
 
                 if viewModel.isSealed {
                     sealedView
@@ -31,7 +30,7 @@ struct WriteLetterView: View {
     // MARK: - Write
 
     private var writeView: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: DS.Spacing.xl) {
             PatchiWithBubble(
                 expression: .calm,
                 text: "Écris à toi dans 6 mois. Qu'est-ce que tu veux te dire ?",
@@ -39,80 +38,77 @@ struct WriteLetterView: View {
                 bubbleStyle: .emotional
             )
 
-            // Date de livraison
             HStack {
                 Image(systemName: "envelope.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.patchiOrange)
                 Text("Livraison le \(Date().plus6Months.formattedLong)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: DS.Font.caption))
+                    .foregroundStyle(Color.dsTextSecondary)
             }
 
-            // Zone d'écriture
             TextEditor(text: $viewModel.content)
                 .font(.body)
-                .padding(12)
+                .padding(DS.Spacing.md)
+                .textLimit($viewModel.content)
                 .frame(minHeight: 200)
-                .background(Color(.systemBackground))
-                .cornerRadius(16)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(Color(.systemGray4), lineWidth: 1)
-                }
+                .scrollContentBackground(.hidden)
+                .background(
+                    RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                        .fill(Color.dsCard)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                        .stroke(Color.dsBorder, lineWidth: 1)
+                )
                 .overlay(alignment: .topLeading) {
                     if viewModel.content.isEmpty {
                         Text("Cher futur moi...")
-                            .foregroundStyle(.tertiary)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 20)
+                            .foregroundStyle(Color.dsTextSecondary.opacity(0.5))
+                            .padding(.horizontal, DS.Spacing.lg)
+                            .padding(.vertical, DS.Spacing.lg)
                             .allowsHitTesting(false)
                     }
                 }
 
-            // Compteur
             HStack {
                 Spacer()
-                Text("\(viewModel.content.count) caractères")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                Text("\(viewModel.content.count)/5000 caractères")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.dsTextSecondary)
             }
 
             Spacer()
 
-            // Bouton sceller
-            Button {
-                withAnimation(.easeInOut(duration: 0.5)) {
+            PillButton(
+                title: "Sceller la lettre",
+                icon: "lock.fill",
+                style: viewModel.canSeal ? .primary : .secondary
+            ) {
+                withAnimation(DS.Animation.screen) {
                     viewModel.seal(context: modelContext)
                 }
-            } label: {
-                Label("Sceller la lettre", systemImage: "lock.fill")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(viewModel.canSeal ? Color.patchiOrange : Color(.systemGray4))
-                    .cornerRadius(16)
             }
             .disabled(!viewModel.canSeal)
+            .opacity(viewModel.canSeal ? 1 : 0.5)
         }
-        .padding(20)
+        .padding(DS.Spacing.lg)
     }
 
     // MARK: - Sealed
 
     private var sealedView: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: DS.Spacing.xxl) {
             Spacer()
 
-            // Enveloppe scellée
             ZStack {
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
                     .fill(Color.patchiOrange.opacity(0.15))
                     .frame(width: 200, height: 140)
+                    .clayShadow(color: .patchiOrange)
 
                 Image(systemName: "lock.fill")
                     .font(.system(size: 40))
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.patchiOrange)
             }
 
             PatchiWithBubble(
@@ -123,12 +119,17 @@ struct WriteLetterView: View {
             )
 
             Text("Livraison le \(Date().plus6Months.formattedLong)")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(Color.dsTextSecondary)
+
+            Text("Touche pour fermer")
+                .font(.system(size: DS.Font.caption))
+                .foregroundStyle(Color.dsTextSecondary.opacity(0.5))
 
             Spacer()
         }
-        .padding(20)
+        .padding(DS.Spacing.lg)
+        .onTapGesture { dismiss() }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
                 dismiss()
@@ -136,8 +137,6 @@ struct WriteLetterView: View {
         }
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     WriteLetterView()

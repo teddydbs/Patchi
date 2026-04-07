@@ -15,36 +15,44 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Header avec date et Patchi
-                    headerSection
+            ZStack {
+                // Fond teinté + blobs
+                Color.dsBackground.ignoresSafeArea()
+                BlobBackground(
+                    colors: blobColors,
+                    opacity: 0.12
+                )
 
-                    // Accueil Patchi si aucune entrée
-                    if checkIns.isEmpty && accountabilityEntries.isEmpty {
-                        welcomeCard
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: DS.Spacing.xl) {
+                        headerSection
+                            .padding(.top, DS.Spacing.sm)
+
+                        if checkIns.isEmpty && accountabilityEntries.isEmpty {
+                            welcomeCard
+                        }
+
+                        weekCalendar
+
+                        dailyChallengeCard
+
+                        let pending = viewModel.pendingDecisions(from: decisions)
+                        if !pending.isEmpty {
+                            pendingDecisionsCard(pending)
+                        }
+
+                        if let latest = checkIns.first {
+                            latestCheckInCard(latest)
+                        }
+
+                        accountabilityButton
+
+                        dailyQuoteCard
+
+                        Spacer(minLength: DS.Spacing.xxl)
                     }
-
-                    // Calendrier semaine
-                    weekCalendar
-
-                    // Défi quotidien
-                    dailyChallengeCard
-
-                    // Décisions en attente
-                    if !pendingDecisions.isEmpty {
-                        pendingDecisionsCard
-                    }
-
-                    // Dernière entrée
-                    if let latest = checkIns.first {
-                        latestCheckInCard(latest)
-                    }
-
-                    // Bouton accountability du soir
-                    accountabilityButton
+                    .padding(.horizontal, DS.Spacing.lg)
                 }
-                .padding(16)
             }
             .navigationBarHidden(true)
             .fullScreenCover(isPresented: $showAccountability) {
@@ -59,54 +67,77 @@ struct HomeView: View {
         }
     }
 
+    // MARK: - Blob Colors
+
+    private var blobColors: [Color] {
+        if let mood = checkIns.first?.moodScore {
+            return [Color.mood(score: mood), .patchiOrange, Color.mood(score: mood).opacity(0.7)]
+        }
+        return [.patchiOrange, .accentPurple, .accentAmber]
+    }
+
     // MARK: - Header
 
     private var headerSection: some View {
         HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
                 Text(Date().formattedLong)
-                    .font(.custom("CrimsonPro-Italic", size: 28, relativeTo: .title))
-                    .italic()
+                    .font(.patchiTitle(DS.Font.cardTitle))
+                    .foregroundStyle(Color.dsTextPrimary)
 
-                if let user = currentUserName {
+                if let user = viewModel.currentUserName(from: users) {
                     Text("Salut \(user).")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(Color.dsTextSecondary)
                 }
             }
 
             Spacer()
 
-            Button { showSettings = true } label: {
-                Image(systemName: "gearshape.fill")
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
+            // Patchi mini + settings
+            HStack(spacing: DS.Spacing.md) {
+                PatchiView(
+                    expression: viewModel.patchiExpression(latestMood: checkIns.first?.moodScore),
+                    size: .small,
+                    showShadow: false
+                )
+
+                Button {
+                    Haptics.light()
+                    showSettings = true
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.title3)
+                        .foregroundStyle(Color.dsTextSecondary)
+                        .frame(width: 44, height: 44)
+                }
             }
         }
     }
 
-    // MARK: - Welcome Card (état vide post-onboarding)
+    // MARK: - Welcome Card
 
     private var welcomeCard: some View {
-        VStack(spacing: 16) {
-            PatchiWithBubble(
-                expression: .happy,
-                text: currentUserName != nil
-                    ? "Bienvenue \(currentUserName!). Ton journal t'attend."
-                    : "Bienvenue. Ton journal t'attend.",
-                patchiSize: .medium,
-                bubbleStyle: .emotional
-            )
+        ClayCard(tint: .patchiOrange) {
+            VStack(spacing: DS.Spacing.md) {
+                PatchiWithBubble(
+                    expression: .happy,
+                    text: {
+                        if let name = viewModel.currentUserName(from: users) {
+                            return "Bienvenue \(name). Ton journal t'attend."
+                        }
+                        return "Bienvenue. Ton journal t'attend."
+                    }(),
+                    patchiSize: .medium,
+                    bubbleStyle: .emotional
+                )
 
-            Text("Fais ton premier check-in pour commencer à suivre ton humeur.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .padding(20)
-        .background {
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.patchiOrange.opacity(0.06))
+                Text("Fais ton premier check-in pour commencer.")
+                    .font(.system(size: DS.Font.caption, weight: .medium))
+                    .foregroundStyle(Color.dsTextSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
         }
     }
 
@@ -117,32 +148,40 @@ struct HomeView: View {
         let today = calendar.startOfDay(for: Date())
         let weekDays = (0..<7).compactMap { calendar.date(byAdding: .day, value: -6 + $0, to: today) }
 
-        return HStack(spacing: 0) {
-            ForEach(weekDays, id: \.self) { date in
-                VStack(spacing: 6) {
-                    Text(dayLetter(date))
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.secondary)
+        return ClayCard {
+            HStack(spacing: 0) {
+                ForEach(weekDays, id: \.self) { date in
+                    VStack(spacing: 6) {
+                        Text(viewModel.dayLetter(date))
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Color.dsTextSecondary)
 
-                    ZStack {
+                        ZStack {
+                            if date.isToday {
+                                Circle()
+                                    .fill(Color.patchiOrange)
+                                    .frame(width: 36, height: 36)
+                            } else if let mood = viewModel.moodScore(on: date, in: checkIns) {
+                                Circle()
+                                    .fill(Color.mood(score: mood).opacity(0.2))
+                                    .frame(width: 36, height: 36)
+                            }
+
+                            Text("\(calendar.component(.day, from: date))")
+                                .font(.system(size: 15, weight: date.isToday ? .bold : .regular))
+                                .foregroundStyle(date.isToday ? .white : .dsTextPrimary)
+                        }
+                        .frame(width: 36, height: 36)
+
+                        // Dot mood
                         Circle()
-                            .fill(date.isToday ? Color.patchiOrange : .clear)
-                            .frame(width: 32, height: 32)
-
-                        Text("\(calendar.component(.day, from: date))")
-                            .font(.system(size: 14, weight: date.isToday ? .bold : .regular))
-                            .foregroundStyle(date.isToday ? .white : .primary)
+                            .fill(viewModel.dotColor(for: date, in: checkIns))
+                            .frame(width: 5, height: 5)
                     }
-
-                    // Point si entrée ce jour
-                    Circle()
-                        .fill(hasMoodEntry(on: date) ? .orange : .clear)
-                        .frame(width: 4, height: 4)
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
             }
         }
-        .padding(.vertical, 8)
     }
 
     // MARK: - Daily Challenge
@@ -151,185 +190,227 @@ struct HomeView: View {
         let recentActivities = checkIns.prefix(5).flatMap(\.activities)
         let challenge = viewModel.dailyChallenge(recentActivities: recentActivities)
 
-        return VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("Défi du jour", systemImage: "flame.fill")
-                    .font(.headline)
-                    .foregroundStyle(.orange)
-                Spacer()
-                Text(viewModel.timeUntilMidnight)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.secondary)
-            }
-
-            HStack(spacing: 12) {
-                Image(systemName: challenge.icon)
-                    .font(.title2)
-                    .foregroundStyle(.orange)
-                    .frame(width: 40)
-
-                Text(challenge.text)
-                    .font(.subheadline)
-
-                Spacer()
-            }
-
-            if !viewModel.isDailyChallengeCompleted {
-                Button {
-                    withAnimation { viewModel.isDailyChallengeCompleted = true }
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                } label: {
-                    Text("C'est fait !")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(Color.patchiOrange)
-                        .foregroundStyle(.white)
-                        .cornerRadius(10)
-                }
-            } else {
+        return ClayCard(tint: .patchiOrange) {
+            VStack(alignment: .leading, spacing: DS.Spacing.md) {
                 HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text("Bravo !")
-                        .font(.subheadline)
-                        .foregroundStyle(.green)
+                    Image(systemName: "flame.fill")
+                        .font(.title2)
+                        .foregroundStyle(Color.patchiOrange)
+
+                    Text("Défi du jour")
+                        .font(.patchiTitle(DS.Font.cardTitle))
+                        .foregroundStyle(Color.dsTextPrimary)
+
+                    Spacer()
+
+                    Text(viewModel.timeUntilMidnight)
+                        .font(.system(size: DS.Font.caption, weight: .semibold))
+                        .foregroundStyle(Color.dsTextSecondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.dsCard))
+                }
+
+                HStack(spacing: DS.Spacing.md) {
+                    Image(systemName: challenge.icon)
+                        .font(.title)
+                        .foregroundStyle(Color.patchiOrange)
+                        .frame(width: 48, height: 48)
+                        .background(
+                            Circle()
+                                .fill(Color.patchiOrange.opacity(0.12))
+                        )
+
+                    Text(challenge.text)
+                        .font(.system(size: DS.Font.body, weight: .regular))
+                        .foregroundStyle(Color.dsTextPrimary)
+
+                    Spacer()
+                }
+
+                if !viewModel.isDailyChallengeCompleted {
+                    PillButton(title: "C'est fait !", icon: "checkmark") {
+                        withAnimation(DS.Animation.micro) {
+                            viewModel.isDailyChallengeCompleted = true
+                        }
+                    }
+                } else {
+                    HStack(spacing: DS.Spacing.sm) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(Color.dsSuccess)
+                        Text("Bravo !")
+                            .font(.system(size: DS.Font.body, weight: .semibold))
+                            .foregroundStyle(Color.dsSuccess)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: DS.buttonHeight)
+                    .transition(.clay)
                 }
             }
-        }
-        .padding(16)
-        .background {
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
         }
     }
 
     // MARK: - Pending Decisions
 
-    private var pendingDecisions: [Decision] {
-        decisions.filter { $0.status == .pending }
-    }
-
-    private var pendingDecisionsCard: some View {
-        Button { showDecisions = true } label: {
-            VStack(alignment: .leading, spacing: 10) {
+    private func pendingDecisionsCard(_ pendingDecisions: [Decision]) -> some View {
+        TappableClayCard(tint: .accentPurple) {
+            Haptics.light()
+            showDecisions = true
+        } content: {
+            VStack(alignment: .leading, spacing: DS.Spacing.md) {
                 HStack {
-                    Label("\(pendingDecisions.count) décision\(pendingDecisions.count > 1 ? "s" : "") en attente", systemImage: "clock.fill")
-                        .font(.headline)
+                    Image(systemName: "clock.fill")
+                        .foregroundStyle(Color.accentPurple)
+                    Text("\(pendingDecisions.count) décision\(pendingDecisions.count > 1 ? "s" : "") en attente")
+                        .font(.system(size: DS.Font.body, weight: .semibold))
+                        .foregroundStyle(Color.dsTextPrimary)
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.dsTextSecondary)
                 }
 
                 ForEach(pendingDecisions.prefix(3)) { decision in
                     HStack {
+                        Circle()
+                            .fill(Color.accentPurple.opacity(0.2))
+                            .frame(width: 8, height: 8)
                         Text(decision.title)
-                            .font(.subheadline)
+                            .font(.system(size: 15))
+                            .foregroundStyle(Color.dsTextPrimary)
                             .lineLimit(1)
                         Spacer()
                         Text("J-\(decision.reviewAt30.daysSinceNow)")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.orange)
+                            .font(.system(size: DS.Font.caption, weight: .bold))
+                            .foregroundStyle(Color.accentAmber)
                     }
                 }
             }
-            .foregroundStyle(.primary)
-        }
-        .buttonStyle(.plain)
-        .padding(16)
-        .background {
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
         }
     }
 
     // MARK: - Latest Check-in
 
     private func latestCheckInCard(_ checkIn: CheckIn) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Dernier check-in")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text(checkIn.date.formattedRelative)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
+        ClayCard(tint: Color.mood(score: checkIn.moodScore)) {
+            VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+                HStack {
+                    Text("Dernier check-in")
+                        .font(.system(size: DS.Font.caption, weight: .semibold))
+                        .foregroundStyle(Color.dsTextSecondary)
+                    Spacer()
+                    Text(checkIn.date.formattedRelative)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.dsTextSecondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color.dsCard))
+                }
 
-            HStack {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.mood(score: checkIn.moodScore))
-                    .frame(width: 4, height: 30)
+                HStack(spacing: DS.Spacing.md) {
+                    // Mood indicator circle
+                    ZStack {
+                        Circle()
+                            .fill(Color.mood(score: checkIn.moodScore))
+                            .frame(width: 48, height: 48)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(checkIn.title ?? "Humeur : \(checkIn.moodScore)/5")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    if let reformulation = checkIn.reformulation {
-                        Text(reformulation)
-                            .font(.caption)
-                            .italic()
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
+                        Text("\(checkIn.moodScore)")
+                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                            .foregroundStyle(Color.moodText(score: checkIn.moodScore))
                     }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(checkIn.title ?? "Humeur : \(checkIn.moodScore)/5")
+                            .font(.system(size: DS.Font.body, weight: .semibold))
+                            .foregroundStyle(Color.dsTextPrimary)
+
+                        if let reformulation = checkIn.reformulation {
+                            Text(reformulation)
+                                .font(.patchiBody(14))
+                                .italic()
+                                .foregroundStyle(Color.dsTextSecondary)
+                                .lineLimit(2)
+                        }
+                    }
+
+                    Spacer()
                 }
             }
-        }
-        .padding(16)
-        .background {
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
         }
     }
 
     // MARK: - Accountability Button
 
     private var accountabilityButton: some View {
-        Button {
+        TappableClayCard {
             showAccountability = true
-        } label: {
-            HStack {
-                Image(systemName: "moon.fill")
-                    .foregroundStyle(.indigo)
-                Text("Check-in du soir")
-                    .fontWeight(.medium)
+        } content: {
+            HStack(spacing: DS.Spacing.md) {
+                ZStack {
+                    Circle()
+                        .fill(Color.accentPurple.opacity(0.12))
+                        .frame(width: 44, height: 44)
+
+                    Image(systemName: "moon.fill")
+                        .font(.title3)
+                        .foregroundStyle(Color.accentPurple)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Check-in du soir")
+                        .font(.system(size: DS.Font.body, weight: .semibold))
+                        .foregroundStyle(Color.dsTextPrimary)
+                    Text("Prends un moment pour toi")
+                        .font(.system(size: DS.Font.caption))
+                        .foregroundStyle(Color.dsTextSecondary)
+                }
+
                 Spacer()
+
                 Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-            .padding(16)
-            .background {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.dsTextSecondary)
             }
         }
-        .buttonStyle(.plain)
+    }
+
+    // MARK: - Daily Quote
+
+    private var dailyQuoteCard: some View {
+        let seed = Calendar.current.ordinality(of: .day, in: .era, for: Date()) ?? 0
+        let quote = allQuotes[seed % allQuotes.count]
+
+        return ZStack {
+            RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            quote.category.color.opacity(0.8),
+                            quote.category.color.opacity(0.4)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+
+            VStack(spacing: DS.Spacing.md) {
+                Text(quote.text)
+                    .font(.patchiQuote(20))
+                    .italic()
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.white)
+
+                Text("— \(quote.author)")
+                    .font(.system(size: DS.Font.caption, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+            .padding(DS.Spacing.xl)
+        }
+        .frame(minHeight: 140)
+        .clayShadow()
     }
 
     // MARK: - Helpers
 
-    private var currentUserName: String? {
-        users.first?.firstName
-    }
-
-    private func hasMoodEntry(on date: Date) -> Bool {
-        checkIns.contains { $0.date.isSameDay(as: date) }
-    }
-
-    private func dayLetter(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "fr_FR")
-        formatter.dateFormat = "EEEEE"
-        return formatter.string(from: date).uppercased()
-    }
 }

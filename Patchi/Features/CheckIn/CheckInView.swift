@@ -8,16 +8,23 @@ struct CheckInView: View {
 
     var body: some View {
         ZStack {
-            // Fond couleur humeur
+            // Fond couleur humeur + blobs
             Color.mood(score: viewModel.moodScore)
                 .ignoresSafeArea()
-                .animation(.easeInOut(duration: 0.4), value: viewModel.moodScore)
+                .animation(DS.Animation.screen, value: viewModel.moodScore)
+
+            BlobBackground(
+                colors: [
+                    Color.mood(score: viewModel.moodScore).opacity(0.5),
+                    .patchiOrange.opacity(0.3)
+                ],
+                opacity: 0.2,
+                blurRadius: 80
+            )
 
             VStack(spacing: 0) {
-                // Header
                 checkInHeader
 
-                // Contenu par étape
                 TabView(selection: Binding(
                     get: { viewModel.currentStep },
                     set: { _ in }
@@ -29,13 +36,11 @@ struct CheckInView: View {
                     reformulationStep.tag(CheckInViewModel.Step.reformulation)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .animation(.easeInOut(duration: 0.4), value: viewModel.currentStep)
+                .animation(DS.Animation.screen, value: viewModel.currentStep)
 
-                // Footer avec boutons
                 checkInFooter
             }
         }
-        // L'utilisateur ferme manuellement via le bouton "Fermer"
     }
 
     // MARK: - Header
@@ -43,6 +48,7 @@ struct CheckInView: View {
     private var checkInHeader: some View {
         HStack {
             Button {
+                Haptics.light()
                 if viewModel.currentStep == .mood {
                     dismiss()
                 } else {
@@ -50,13 +56,13 @@ struct CheckInView: View {
                 }
             } label: {
                 Image(systemName: viewModel.currentStep == .mood ? "xmark" : "chevron.left")
-                    .font(.title3)
-                    .fontWeight(.medium)
+                    .font(.title3.weight(.medium))
+                    .frame(width: 44, height: 44)
             }
 
             Spacer()
 
-            // Indicateur de progression
+            // Progress pills
             HStack(spacing: 6) {
                 let textColor = Color.moodText(score: viewModel.moodScore)
                 ForEach(CheckInViewModel.Step.allCases, id: \.rawValue) { step in
@@ -65,36 +71,35 @@ struct CheckInView: View {
                             ? textColor
                             : textColor.opacity(0.25))
                         .frame(width: step.rawValue <= viewModel.currentStep.rawValue ? 20 : 8, height: 4)
+                        .animation(DS.Animation.micro, value: viewModel.currentStep)
                 }
             }
 
             Spacer()
 
-            // Espace pour équilibrer
-            Color.clear.frame(width: 28, height: 28)
+            Color.clear.frame(width: 44, height: 44)
         }
         .foregroundStyle(Color.moodText(score: viewModel.moodScore))
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 8)
+        .padding(.horizontal, DS.Spacing.lg)
+        .padding(.top, DS.Spacing.md)
+        .padding(.bottom, DS.Spacing.sm)
     }
 
     // MARK: - Step 1: Mood
 
     private var moodStep: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: DS.Spacing.xxl) {
             Spacer()
 
             Text("Comment tu te sens ?")
-                .font(.title2)
-                .fontWeight(.semibold)
+                .font(.patchiTitle(28))
                 .foregroundStyle(Color.moodText(score: viewModel.moodScore))
 
             MoodSliderView(moodScore: $viewModel.moodScore)
 
             Spacer()
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, DS.Spacing.lg)
     }
 
     // MARK: - Step 2: Activities
@@ -102,7 +107,7 @@ struct CheckInView: View {
     private var activitiesStep: some View {
         ScrollView {
             ActivityGridView(selected: $viewModel.selectedActivities)
-                .padding(20)
+                .padding(DS.Spacing.lg)
         }
     }
 
@@ -111,7 +116,7 @@ struct CheckInView: View {
     private var emotionsStep: some View {
         ScrollView {
             EmotionGridView(selected: $viewModel.selectedEmotions)
-                .padding(20)
+                .padding(DS.Spacing.lg)
         }
     }
 
@@ -119,34 +124,49 @@ struct CheckInView: View {
 
     private var detailsStep: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: DS.Spacing.xl) {
                 // Titre optionnel
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: DS.Spacing.sm) {
                     Text("Un titre pour ce moment ?")
-                        .font(.headline)
+                        .font(.system(size: DS.Font.body, weight: .semibold))
+                        .foregroundStyle(Color.moodText(score: viewModel.moodScore))
                     TextField("Optionnel", text: $viewModel.title)
-                        .textFieldStyle(.roundedBorder)
-                }
-
-                // Note libre
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Raconte ta journée")
-                        .font(.headline)
-                    TextEditor(text: $viewModel.note)
-                        .frame(minHeight: 120)
-                        .padding(8)
-                        .background(Color(.systemBackground))
-                        .cornerRadius(10)
+                        .padding(DS.Spacing.md)
+                        .background(
+                            RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous)
+                                .fill(Color.white.opacity(0.2))
+                        )
                         .overlay {
-                            RoundedRectangle(cornerRadius: 10)
-                                .strokeBorder(Color(.systemGray4), lineWidth: 1)
+                            RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
                         }
                 }
 
+                // Note libre
+                VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+                    Text("Raconte ta journée")
+                        .font(.system(size: DS.Font.body, weight: .semibold))
+                        .foregroundStyle(Color.moodText(score: viewModel.moodScore))
+                    TextEditor(text: $viewModel.note)
+                        .frame(minHeight: 120)
+                        .padding(DS.Spacing.sm)
+                        .scrollContentBackground(.hidden)
+                        .background(
+                            RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous)
+                                .fill(Color.white.opacity(0.2))
+                        )
+                        .overlay {
+                            RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        }
+                        .textLimit($viewModel.note)
+                }
+
                 // Photo optionnelle
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: DS.Spacing.sm) {
                     Text("Une photo ?")
-                        .font(.headline)
+                        .font(.system(size: DS.Font.body, weight: .semibold))
+                        .foregroundStyle(Color.moodText(score: viewModel.moodScore))
 
                     if let photoData = viewModel.photoData,
                        let uiImage = UIImage(data: photoData) {
@@ -154,7 +174,7 @@ struct CheckInView: View {
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(height: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .clipShape(RoundedRectangle(cornerRadius: DS.Radius.chip, style: .continuous))
                             .overlay(alignment: .topTrailing) {
                                 Button {
                                     viewModel.photoData = nil
@@ -165,7 +185,7 @@ struct CheckInView: View {
                                         .foregroundStyle(.white)
                                         .shadow(radius: 2)
                                 }
-                                .padding(8)
+                                .padding(DS.Spacing.sm)
                             }
                     } else {
                         PhotosPicker(
@@ -175,8 +195,14 @@ struct CheckInView: View {
                             Label("Ajouter une photo", systemImage: "photo.badge.plus")
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
+                                .background(
+                                    RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous)
+                                        .fill(Color.white.opacity(0.15))
+                                )
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous)
+                                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                                }
                         }
                         .onChange(of: viewModel.selectedPhotoItem) {
                             Task { await viewModel.loadPhoto() }
@@ -184,14 +210,14 @@ struct CheckInView: View {
                     }
                 }
             }
-            .padding(20)
+            .padding(DS.Spacing.lg)
         }
     }
 
     // MARK: - Step 5: Reformulation
 
     private var reformulationStep: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: DS.Spacing.xxl) {
             Spacer()
 
             PatchiWithBubble(
@@ -203,9 +229,8 @@ struct CheckInView: View {
 
             Spacer()
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, DS.Spacing.lg)
         .onAppear {
-            // Sauvegarder automatiquement quand on arrive sur la reformulation
             viewModel.save(context: modelContext)
         }
     }
@@ -215,51 +240,41 @@ struct CheckInView: View {
     private var checkInFooter: some View {
         Group {
             if viewModel.currentStep == .reformulation {
-                Button {
+                PillButton(title: "Fermer", style: .mood(viewModel.moodScore)) {
                     dismiss()
-                } label: {
-                    Text("Fermer")
-                        .font(.headline)
-                        .foregroundStyle(Color.mood(score: viewModel.moodScore))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color.moodText(score: viewModel.moodScore))
-                        .cornerRadius(16)
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, DS.Spacing.lg)
                 .padding(.bottom, 30)
             } else {
-                VStack(spacing: 12) {
-                    // Skip en haut pour les étapes optionnelles
+                VStack(spacing: DS.Spacing.sm) {
                     if viewModel.currentStep != .mood {
-                        Button("Passer cette étape") {
-                            viewModel.goNext()
+                        Button("Terminer maintenant") {
+                            viewModel.finishEarly()
                         }
                         .font(.subheadline)
                         .foregroundStyle(Color.moodText(score: viewModel.moodScore).opacity(0.5))
                     }
 
-                    // Bouton principal
                     Button {
+                        Haptics.medium()
                         viewModel.goNext()
                     } label: {
                         Text(viewModel.isLastInputStep ? "Terminer" : "Suivant")
                             .font(.headline)
                             .foregroundStyle(Color.mood(score: viewModel.moodScore))
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
+                            .frame(height: DS.buttonHeight)
                             .background(Color.moodText(score: viewModel.moodScore))
-                            .cornerRadius(16)
+                            .clipShape(RoundedRectangle(cornerRadius: DS.Radius.button, style: .continuous))
                     }
+                    .buttonStyle(SpringPressStyle())
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, DS.Spacing.lg)
                 .padding(.bottom, 30)
             }
         }
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     CheckInView()

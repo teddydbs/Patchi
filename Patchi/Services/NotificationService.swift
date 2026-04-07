@@ -26,6 +26,14 @@ final class NotificationService {
 
     // MARK: - 1. Notifications du soir (quotidiennes)
 
+    /// Ajoute une notification seulement si les permissions sont accordées
+    private func addIfAuthorized(_ request: UNNotificationRequest) {
+        center.getNotificationSettings { [center] settings in
+            guard settings.authorizationStatus == .authorized else { return }
+            center.add(request)
+        }
+    }
+
     /// Schedule les notifications quotidiennes du soir entre startHour et endHour
     func scheduleEveningNotifications(startHour: Int, endHour: Int, count: Int) {
         // Supprimer les anciennes
@@ -40,7 +48,7 @@ final class NotificationService {
                 hour = startHour + (range * i) / max(count - 1, 1)
             }
 
-            let phrase = eveningPhrases.randomElement()!
+            let phrase = eveningPhrases.randomElement() ?? "Comment tu te sens ce soir ?"
 
             var dateComponents = DateComponents()
             dateComponents.hour = hour
@@ -54,7 +62,7 @@ final class NotificationService {
                 trigger: trigger
             )
 
-            center.add(request)
+            addIfAuthorized(request)
         }
     }
 
@@ -76,7 +84,7 @@ final class NotificationService {
         let identifier = "decision-\(decisionId.uuidString)-\(type.rawValue)"
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
 
-        center.add(request)
+        addIfAuthorized(request)
     }
 
     /// Supprime les notifications d'une décision
@@ -100,7 +108,7 @@ final class NotificationService {
             "La lettre est arrivée. Elle t'attendait.",
         ]
 
-        let content = makeContent(title: "Patchi", body: phrases.randomElement()!, categoryId: "LETTER_DELIVERY")
+        let content = makeContent(title: "Patchi", body: phrases.randomElement() ?? "Patchi est là.", categoryId: "LETTER_DELIVERY")
         content.userInfo = ["letterId": letterId.uuidString]
 
         let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
@@ -108,7 +116,7 @@ final class NotificationService {
         let identifier = "letter-\(letterId.uuidString)"
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
 
-        center.add(request)
+        addIfAuthorized(request)
     }
 
     /// Supprime la notification d'une lettre
@@ -135,11 +143,11 @@ final class NotificationService {
         dateComponents.hour = 19
         dateComponents.minute = 0
 
-        let content = makeContent(title: "Rituel du dimanche", body: phrases.randomElement()!)
+        let content = makeContent(title: "Rituel du dimanche", body: phrases.randomElement() ?? "Patchi est là.")
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
         let request = UNNotificationRequest(identifier: "sunday-ritual", content: content, trigger: trigger)
 
-        center.add(request)
+        addIfAuthorized(request)
     }
 
     // MARK: - 5. Notification de décision en approche
@@ -158,7 +166,7 @@ final class NotificationService {
         let identifier = "decision-approaching-\(decisionId.uuidString)-\(daysBefore)d"
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
 
-        center.add(request)
+        addIfAuthorized(request)
     }
 
     // MARK: - Gestion

@@ -70,11 +70,11 @@ struct HeatmapCell: View {
         guard isVisible else { return .clear }
 
         if day.isEmpty {
-            return Color(.systemGray5)
+            return Color.dsBorder
         }
 
         guard let color = day.color else {
-            return Color(.systemGray5)
+            return Color.dsBorder
         }
 
         return color.color.opacity(day.opacity)

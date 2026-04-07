@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Type d'entrée unifié pour le journal
+/// Type d'entree unifie pour le journal
 enum JournalEntryType: String, CaseIterable, Identifiable {
     case checkIn
     case accountability
@@ -29,10 +29,10 @@ enum JournalEntryType: String, CaseIterable, Identifiable {
 
     var color: Color {
         switch self {
-        case .checkIn: .blue
-        case .accountability: .green
-        case .decision: .purple
-        case .letter: .orange
+        case .checkIn: .accentPurple
+        case .accountability: .dsSuccess
+        case .decision: .accentAmber
+        case .letter: .patchiOrange
         }
     }
 }
@@ -43,75 +43,71 @@ struct CheckInCardView: View {
     let checkIn: CheckIn
 
     var body: some View {
-        HStack(spacing: 14) {
-            // Indicateur couleur humeur
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color.mood(score: checkIn.moodScore))
-                .frame(width: 6)
-
-            VStack(alignment: .leading, spacing: 6) {
-                // Header
-                HStack {
-                    Label("Check-in", systemImage: "face.smiling")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(checkIn.date.formattedShort)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+        ClayCard(tint: Color.mood(score: checkIn.moodScore)) {
+            HStack(spacing: 14) {
+                // Mood circle
+                ZStack {
+                    Circle()
+                        .fill(Color.mood(score: checkIn.moodScore))
+                        .frame(width: 40, height: 40)
+                    Text("\(checkIn.moodScore)")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.moodText(score: checkIn.moodScore))
                 }
 
-                // Titre ou mood
-                if let title = checkIn.title, !title.isEmpty {
-                    Text(title)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                } else {
-                    Text("Humeur : \(checkIn.moodScore)/5")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                }
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Label("Check-in", systemImage: "face.smiling")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Color.dsTextSecondary)
+                        Spacer()
+                        Text(checkIn.date.formattedShort)
+                            .font(.system(size: 11))
+                            .foregroundStyle(Color.dsTextSecondary)
+                    }
 
-                // Activités
-                if !checkIn.activities.isEmpty {
-                    HStack(spacing: 4) {
-                        ForEach(checkIn.activities.prefix(5)) { activity in
-                            Image(systemName: activity.icon)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
+                    if let title = checkIn.title, !title.isEmpty {
+                        Text(title)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Color.dsTextPrimary)
+                    } else {
+                        Text("Humeur : \(checkIn.moodScore)/5")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Color.dsTextPrimary)
+                    }
+
+                    if !checkIn.activities.isEmpty {
+                        HStack(spacing: 4) {
+                            ForEach(checkIn.activities.prefix(5)) { activity in
+                                Image(systemName: activity.icon)
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.dsTextSecondary)
+                            }
+                            if checkIn.activities.count > 5 {
+                                Text("+\(checkIn.activities.count - 5)")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color.dsTextSecondary)
+                            }
                         }
-                        if checkIn.activities.count > 5 {
-                            Text("+\(checkIn.activities.count - 5)")
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
-                        }
+                    }
+
+                    if let reformulation = checkIn.reformulation {
+                        Text(reformulation)
+                            .font(.patchiBody(13))
+                            .italic()
+                            .foregroundStyle(Color.dsTextSecondary)
+                            .lineLimit(1)
                     }
                 }
 
-                // Reformulation
-                if let reformulation = checkIn.reformulation {
-                    Text(reformulation)
-                        .font(.caption)
-                        .italic()
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                if let photoData = checkIn.photoData, let uiImage = UIImage(data: photoData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 44, height: 44)
+                        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.chip / 2, style: .continuous))
                 }
             }
-
-            // Photo thumbnail
-            if let photoData = checkIn.photoData, let uiImage = UIImage(data: photoData) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 44, height: 44)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-        }
-        .padding(14)
-        .background {
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
         }
     }
 }
@@ -122,42 +118,32 @@ struct DecisionCardView: View {
     let decision: Decision
 
     var body: some View {
-        HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color.purple)
-                .frame(width: 6)
-
+        ClayCard(tint: .accentPurple) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Label("Décision", systemImage: "arrow.triangle.branch")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.dsTextSecondary)
                     Spacer()
                     StatusBadge(status: decision.status)
                 }
 
                 Text(decision.title)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Color.dsTextPrimary)
 
                 HStack(spacing: 4) {
                     ForEach(0..<decision.importance, id: \.self) { _ in
                         Image(systemName: "star.fill")
                             .font(.system(size: 8))
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Color.accentAmber)
                     }
                     Spacer()
                     Text(decision.createdAt.formattedShort)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.dsTextSecondary)
                 }
             }
-        }
-        .padding(14)
-        .background {
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
         }
     }
 }
@@ -167,20 +153,18 @@ private struct StatusBadge: View {
 
     var body: some View {
         Text(status.displayName)
-            .font(.system(size: 10, weight: .medium))
+            .font(.system(size: 10, weight: .semibold))
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
-            .background {
-                Capsule().fill(badgeColor.opacity(0.15))
-            }
+            .background(Capsule(style: .continuous).fill(badgeColor.opacity(0.15)))
             .foregroundStyle(badgeColor)
     }
 
     private var badgeColor: Color {
         switch status {
-        case .pending: .orange
-        case .reviewed30: .blue
-        case .reviewed90: .green
+        case .pending: .accentAmber
+        case .reviewed30: .accentPurple
+        case .reviewed90: .dsSuccess
         }
     }
 }
@@ -191,40 +175,35 @@ struct AccountabilityCardView: View {
     let entry: AccountabilityEntry
 
     var body: some View {
-        HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 4)
-                .fill(entry.heatmapColor.color)
-                .frame(width: 6)
+        ClayCard(tint: .dsSuccess) {
+            HStack(spacing: 14) {
+                Circle()
+                    .fill(entry.heatmapColor.color)
+                    .frame(width: 12, height: 12)
 
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Label("Accountability", systemImage: "checkmark.square")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(entry.date.formattedShort)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Label("Accountability", systemImage: "checkmark.square")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Color.dsTextSecondary)
+                        Spacer()
+                        Text(entry.date.formattedShort)
+                            .font(.system(size: 11))
+                            .foregroundStyle(Color.dsTextSecondary)
+                    }
 
-                if entry.isSkipped {
-                    Text("Tout allait bien")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.green)
-                } else {
-                    Text(entry.missedAction)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .lineLimit(2)
+                    if entry.isSkipped {
+                        Text("Tout allait bien")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Color.dsSuccess)
+                    } else {
+                        Text(entry.missedAction)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Color.dsTextPrimary)
+                            .lineLimit(2)
+                    }
                 }
             }
-        }
-        .padding(14)
-        .background {
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
         }
     }
 }
@@ -235,45 +214,39 @@ struct LetterCardView: View {
     let letter: FutureLetter
 
     var body: some View {
-        HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color.orange)
-                .frame(width: 6)
-
+        ClayCard(tint: .patchiOrange) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Label("Lettre", systemImage: "envelope.fill")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.dsTextSecondary)
                     Spacer()
 
                     if letter.isDelivered {
-                        Text("Livrée")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(.green)
-                    } else {
+                        Text("Livree")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Color.dsSuccess)
+                    } else if letter.deliverAt.daysSinceNow > 0 {
                         Text("Dans \(letter.deliverAt.daysSinceNow)j")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(.orange)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Color.accentAmber)
+                    } else {
+                        Text("Prête")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Color.dsSuccess)
                     }
                 }
 
                 Text(letter.isDelivered ? letter.content : "Lettre scellée")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Color.dsTextPrimary)
                     .lineLimit(2)
                     .redacted(reason: letter.isDelivered ? [] : .placeholder)
 
                 Text("Écrite le \(letter.writtenAt.formattedShort)")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.dsTextSecondary)
             }
-        }
-        .padding(14)
-        .background {
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
         }
     }
 }

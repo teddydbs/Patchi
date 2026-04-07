@@ -10,6 +10,7 @@ final class DecisionViewModel {
     var prediction: String = ""
     var decision: String = ""
     var importance: Int = 3
+    var confidence: Int = 70
 
     // MARK: - State
 
@@ -32,7 +33,8 @@ final class DecisionViewModel {
             context: context.trimmingCharacters(in: .whitespacesAndNewlines),
             prediction: prediction.trimmingCharacters(in: .whitespacesAndNewlines),
             decision: decision.trimmingCharacters(in: .whitespacesAndNewlines),
-            importance: importance
+            importance: importance,
+            confidence: prediction.isEmpty ? nil : confidence
         )
 
         modelContext.insert(newDecision)
@@ -67,6 +69,7 @@ final class DecisionViewModel {
         prediction = ""
         decision = ""
         importance = 3
+        confidence = 70
         isCompleted = false
     }
 }

@@ -3,6 +3,7 @@ import SwiftData
 
 struct JournalView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \CheckIn.date, order: .reverse) private var checkIns: [CheckIn]
     @Query(sort: \AccountabilityEntry.date, order: .reverse) private var accountabilityEntries: [AccountabilityEntry]
     @Query(sort: \Decision.createdAt, order: .reverse) private var decisions: [Decision]
@@ -12,67 +13,68 @@ struct JournalView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Toggle mode + calendrier
-                HStack {
-                    Button {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            viewModel.showAllEntries.toggle()
-                            if viewModel.showAllEntries {
-                                viewModel.selectedDate = nil
-                            } else {
-                                viewModel.selectedDate = Date()
+            ZStack {
+                Color.dsBackground.ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    // Toggle mode
+                    HStack {
+                        FilterChipDS(
+                            label: viewModel.showAllEntries ? "Par jour" : "Tout voir",
+                            isSelected: false
+                        ) {
+                            withAnimation(DS.Animation.micro) {
+                                viewModel.showAllEntries.toggle()
+                                if viewModel.showAllEntries {
+                                    viewModel.selectedDate = nil
+                                } else {
+                                    viewModel.selectedDate = Date()
+                                }
                             }
                         }
-                    } label: {
-                        Text(viewModel.showAllEntries ? "Par jour" : "Tout voir")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Capsule().fill(Color(.systemGray6)))
+                        .padding(.leading, DS.Spacing.lg)
+                        Spacer()
                     }
-                    .padding(.leading, 16)
-                    Spacer()
-                }
-                .padding(.top, 4)
+                    .padding(.top, DS.Spacing.xs)
 
-                if !viewModel.showAllEntries {
-                    CalendarStripView(
-                        selectedDate: Binding(
-                            get: { viewModel.selectedDate ?? Date() },
-                            set: { viewModel.selectedDate = $0 }
-                        ),
-                        markedDates: viewModel.markedDates(
-                            checkIns: checkIns,
-                            accountabilityEntries: accountabilityEntries,
-                            decisions: decisions,
-                            letters: letters
+                    if !viewModel.showAllEntries {
+                        CalendarStripView(
+                            selectedDate: Binding(
+                                get: { viewModel.selectedDate ?? Date() },
+                                set: { viewModel.selectedDate = $0 }
+                            ),
+                            markedDates: viewModel.markedDates(
+                                checkIns: checkIns,
+                                accountabilityEntries: accountabilityEntries,
+                                decisions: decisions,
+                                letters: letters
+                            )
                         )
-                    )
-                    .padding(.vertical, 8)
-                }
+                        .padding(.vertical, DS.Spacing.sm)
+                    }
 
-                // Compteurs
-                countersRow
+                    countersRow
+                    filterRow
 
-                // Filtres
-                filterRow
-
-                Divider()
-
-                // Liste des entrées
-                if filteredEntries.isEmpty {
-                    emptyState
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 10) {
-                            ForEach(filteredEntries, id: \.id) { entry in
-                                entryCard(for: entry)
+                    if filteredEntries.isEmpty {
+                        emptyState
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: DS.Spacing.md) {
+                                ForEach(filteredEntries, id: \.id) { entry in
+                                    entryCard(for: entry)
+                                        .contextMenu {
+                                            Button(role: .destructive) {
+                                                deleteEntry(entry)
+                                            } label: {
+                                                Label("Supprimer", systemImage: "trash")
+                                            }
+                                        }
+                                }
                             }
+                            .padding(.horizontal, DS.Spacing.lg)
+                            .padding(.vertical, DS.Spacing.md)
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
                     }
                 }
             }
@@ -90,42 +92,32 @@ struct JournalView: View {
             decisions: decisions,
             letters: letters
         )
-        return HStack(spacing: 24) {
-            CounterBadge(value: counts.reflections, label: "réflexions")
+        return HStack(spacing: DS.Spacing.xl) {
+            CounterBadge(value: counts.reflections, label: "reflexions")
             CounterBadge(value: counts.checkIns, label: "check-ins")
             CounterBadge(value: counts.photos, label: "photos")
         }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 8)
+        .padding(.horizontal, DS.Spacing.lg)
+        .padding(.bottom, DS.Spacing.sm)
     }
 
     // MARK: - Filters
 
     private var filterRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: DS.Spacing.sm) {
                 ForEach(JournalViewModel.JournalFilter.allCases) { filter in
-                    Button {
-                        withAnimation(.easeOut(duration: 0.2)) {
+                    FilterChipDS(
+                        label: filter.label,
+                        isSelected: viewModel.selectedFilter == filter
+                    ) {
+                        withAnimation(DS.Animation.micro) {
                             viewModel.selectedFilter = filter
                         }
-                    } label: {
-                        Text(filter.label)
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 7)
-                            .background {
-                                Capsule()
-                                    .fill(viewModel.selectedFilter == filter
-                                        ? Color.patchiOrange
-                                        : Color(.systemGray6))
-                            }
-                            .foregroundStyle(viewModel.selectedFilter == filter ? .white : .primary)
                     }
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, DS.Spacing.lg)
             .padding(.vertical, 6)
         }
     }
@@ -133,15 +125,15 @@ struct JournalView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: DS.Spacing.md) {
             Spacer()
             PatchiView(expression: .curious, size: .large)
             Text("Rien ici pour l'instant.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.system(size: DS.Font.body, weight: .medium))
+                .foregroundStyle(Color.dsTextSecondary)
             Text("Fais ton premier check-in !")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+                .font(.system(size: DS.Font.caption))
+                .foregroundStyle(Color.dsTextSecondary.opacity(0.7))
             Spacer()
         }
     }
@@ -161,28 +153,24 @@ struct JournalView: View {
     private var filteredEntries: [UnifiedEntry] {
         var entries: [UnifiedEntry] = []
 
-        // Check-ins
         if viewModel.selectedFilter == .all || viewModel.selectedFilter == .checkIns {
             for c in checkIns where matchesDateFilter(c.date) {
                 entries.append(UnifiedEntry(id: "ci-\(c.id)", date: c.date, type: .checkIn, checkIn: c, accountability: nil, decision: nil, letter: nil))
             }
         }
 
-        // Accountability
         if viewModel.selectedFilter == .all || viewModel.selectedFilter == .accountability {
             for a in accountabilityEntries where matchesDateFilter(a.date) {
                 entries.append(UnifiedEntry(id: "ac-\(a.id)", date: a.date, type: .accountability, checkIn: nil, accountability: a, decision: nil, letter: nil))
             }
         }
 
-        // Decisions
         if viewModel.selectedFilter == .all || viewModel.selectedFilter == .decisions {
             for d in decisions where matchesDateFilter(d.createdAt) {
                 entries.append(UnifiedEntry(id: "de-\(d.id)", date: d.createdAt, type: .decision, checkIn: nil, accountability: nil, decision: d, letter: nil))
             }
         }
 
-        // Letters
         if viewModel.selectedFilter == .all || viewModel.selectedFilter == .letters {
             for l in letters where matchesDateFilter(l.writtenAt) {
                 entries.append(UnifiedEntry(id: "le-\(l.id)", date: l.writtenAt, type: .letter, checkIn: nil, accountability: nil, decision: nil, letter: l))
@@ -192,10 +180,22 @@ struct JournalView: View {
         return entries.sorted { $0.date > $1.date }
     }
 
-    private func matchesDateFilter(_ date: Date) -> Bool {
-        guard let selectedDate = viewModel.selectedDate else {
-            return true // Pas de filtre date = tout montrer
+    private func deleteEntry(_ entry: UnifiedEntry) {
+        if let checkIn = entry.checkIn {
+            modelContext.delete(checkIn)
+        } else if let acc = entry.accountability {
+            modelContext.delete(acc)
+        } else if let dec = entry.decision {
+            NotificationService.shared.removeDecisionReminders(decisionId: dec.id)
+            modelContext.delete(dec)
+        } else if let letter = entry.letter {
+            NotificationService.shared.removeLetterDelivery(letterId: letter.id)
+            modelContext.delete(letter)
         }
+    }
+
+    private func matchesDateFilter(_ date: Date) -> Bool {
+        guard let selectedDate = viewModel.selectedDate else { return true }
         return date.isSameDay(as: selectedDate)
     }
 
@@ -231,11 +231,11 @@ private struct CounterBadge: View {
     var body: some View {
         VStack(spacing: 2) {
             Text("\(value)")
-                .font(.headline)
-                .fontWeight(.bold)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.dsTextPrimary)
             Text(label)
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(Color.dsTextSecondary)
         }
     }
 }

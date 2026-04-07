@@ -9,8 +9,8 @@ struct ReadLetterView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(red: 1.0, green: 0.97, blue: 0.93)
-                    .ignoresSafeArea()
+                Color.dsBackground.ignoresSafeArea()
+                BlobBackground(colors: [.patchiOrange, .accentAmber], opacity: 0.08)
 
                 if !viewModel.isOpened {
                     envelopeView
@@ -25,17 +25,16 @@ struct ReadLetterView: View {
                 }
             }
             .onAppear {
-                // Marquer comme livrée
                 letter.isDelivered = true
                 viewModel.openLetter()
             }
         }
     }
 
-    // MARK: - Enveloppe (avant ouverture)
+    // MARK: - Envelope
 
     private var envelopeView: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: DS.Spacing.xxl) {
             Spacer()
 
             PatchiWithBubble(
@@ -45,15 +44,15 @@ struct ReadLetterView: View {
                 bubbleStyle: .emotional
             )
 
-            // Enveloppe animée
             ZStack {
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
                     .fill(Color.patchiOrange.opacity(0.15))
                     .frame(width: 220, height: 150)
+                    .clayShadow(color: .patchiOrange)
 
                 Image(systemName: "envelope.open.fill")
                     .font(.system(size: 50))
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.patchiOrange)
                     .scaleEffect(viewModel.isOpening ? 1.2 : 1.0)
                     .animation(
                         .easeInOut(duration: 0.8).repeatCount(2),
@@ -62,84 +61,67 @@ struct ReadLetterView: View {
             }
 
             Text("Écrite le \(letter.writtenAt.formattedLong)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.system(size: DS.Font.caption))
+                .foregroundStyle(Color.dsTextSecondary)
 
             Spacer()
         }
-        .padding(20)
+        .padding(DS.Spacing.lg)
     }
 
-    // MARK: - Contenu de la lettre
+    // MARK: - Letter Content
 
     private var letterContentView: some View {
         ScrollView {
-            VStack(spacing: 24) {
-                // Date d'écriture
+            VStack(spacing: DS.Spacing.xl) {
                 Text("Le \(letter.writtenAt.formattedLong), tu avais écrit :")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(Color.dsTextSecondary)
 
-                // Contenu de la lettre
-                Text(letter.content)
-                    .font(.custom("CrimsonPro-Italic", size: 18, relativeTo: .body))
-                    .italic()
-                    .padding(20)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color(.systemBackground))
-                            .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
-                    }
+                ClayCard(tint: .patchiOrange) {
+                    Text(letter.content)
+                        .font(.patchiBody(18))
+                        .italic()
+                        .foregroundStyle(Color.dsTextPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
 
-                Divider()
-
-                // Répondre
-                VStack(alignment: .leading, spacing: 12) {
+                // Reply section
+                VStack(alignment: .leading, spacing: DS.Spacing.md) {
                     Text("Tu veux répondre ?")
-                        .font(.headline)
+                        .font(.system(size: DS.Font.body, weight: .semibold))
+                        .foregroundStyle(Color.dsTextPrimary)
 
                     Text("Ta réponse deviendra une nouvelle lettre pour dans 6 mois.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: DS.Font.caption))
+                        .foregroundStyle(Color.dsTextSecondary)
 
                     TextEditor(text: $viewModel.replyText)
                         .frame(minHeight: 100)
-                        .padding(10)
-                        .background(Color(.systemBackground))
-                        .cornerRadius(12)
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 12)
-                                .strokeBorder(Color(.systemGray4), lineWidth: 1)
-                        }
+                        .dsTextEditor()
 
-                    Button {
+                    PillButton(
+                        title: "Envoyer la réponse",
+                        icon: "paperplane.fill",
+                        style: canReply ? .primary : .secondary
+                    ) {
                         viewModel.reply(to: letter, context: modelContext)
                         dismiss()
-                    } label: {
-                        Label("Envoyer la réponse", systemImage: "paperplane.fill")
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(
-                                viewModel.replyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                    ? Color(.systemGray4)
-                                    : Color.patchiOrange
-                            )
-                            .cornerRadius(14)
                     }
-                    .disabled(viewModel.replyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(!canReply)
+                    .opacity(canReply ? 1 : 0.5)
                 }
             }
-            .padding(20)
+            .padding(DS.Spacing.lg)
         }
+    }
+
+    private var canReply: Bool {
+        !viewModel.replyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
 
-// MARK: - Preview
-
 #Preview {
-    ReadLetterView(letter: FutureLetter(content: "Cher futur moi, j'espère que tu vas bien. En ce moment je traverse une période de doute mais je sais que ça va passer. Continue à croire en toi."))
+    ReadLetterView(letter: FutureLetter(content: "Cher futur moi, j'espere que tu vas bien."))
         .modelContainer(for: [FutureLetter.self])
 }

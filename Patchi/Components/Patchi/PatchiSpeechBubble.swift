@@ -74,17 +74,17 @@ struct PatchiSpeechBubble: View {
 
         var backgroundColor: Color {
             switch self {
-            case .standard: .white
+            case .standard: Color.dsCard
             case .emotional: Color.patchiOrange.opacity(0.12)
-            case .subtle: Color(.systemGray6)
+            case .subtle: Color.dsCard.opacity(0.8)
             }
         }
 
         var textColor: Color {
             switch self {
-            case .standard: Color(red: 0.2, green: 0.2, blue: 0.2)
-            case .emotional: Color(red: 0.15, green: 0.15, blue: 0.15)
-            case .subtle: .secondary
+            case .standard: Color.dsTextPrimary
+            case .emotional: Color.dsTextPrimary
+            case .subtle: Color.dsTextSecondary
             }
         }
 

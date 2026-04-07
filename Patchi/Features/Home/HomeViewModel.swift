@@ -5,7 +5,27 @@ import SwiftData
 final class HomeViewModel {
     // MARK: - Daily Challenge
 
-    var isDailyChallengeCompleted = false
+    var isDailyChallengeCompleted: Bool {
+        get {
+            guard let dateString = UserDefaults.standard.string(forKey: "dailyChallengeCompletedDate") else { return false }
+            let todayString = Self.dateKeyFormatter.string(from: Date())
+            return dateString == todayString
+        }
+        set {
+            if newValue {
+                UserDefaults.standard.set(Self.dateKeyFormatter.string(from: Date()), forKey: "dailyChallengeCompletedDate")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "dailyChallengeCompletedDate")
+            }
+        }
+    }
+
+    private static let dateKeyFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+
     private var cachedChallenge: DailyChallenge?
     private var challengeDate: Date?
 
@@ -53,6 +73,44 @@ final class HomeViewModel {
         }
 
         return PatchiExpression.fromMoodScore(mood)
+    }
+
+    // MARK: - Data helpers
+
+    /// Décisions en attente de verdict
+    func pendingDecisions(from decisions: [Decision]) -> [Decision] {
+        decisions.filter { $0.status == .pending }
+    }
+
+    /// Vérifie si un check-in existe pour un jour donné
+    func hasMoodEntry(on date: Date, in checkIns: [CheckIn]) -> Bool {
+        checkIns.contains { $0.date.isSameDay(as: date) }
+    }
+
+    /// Score d'humeur pour un jour donné
+    func moodScore(on date: Date, in checkIns: [CheckIn]) -> Int? {
+        checkIns.first { $0.date.isSameDay(as: date) }?.moodScore
+    }
+
+    /// Couleur du dot pour un jour (basée sur l'humeur ou clear)
+    func dotColor(for date: Date, in checkIns: [CheckIn]) -> Color {
+        if let mood = moodScore(on: date, in: checkIns) {
+            return Color.mood(score: mood)
+        }
+        return .clear
+    }
+
+    /// Lettre du jour de la semaine (L, M, M, J, V, S, D)
+    func dayLetter(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "fr_FR")
+        formatter.dateFormat = "EEEEE"
+        return formatter.string(from: date).uppercased()
+    }
+
+    /// Prénom de l'utilisateur courant
+    func currentUserName(from users: [User]) -> String? {
+        users.first?.firstName
     }
 
     // MARK: - Challenges data

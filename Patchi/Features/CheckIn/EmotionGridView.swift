@@ -7,13 +7,13 @@ struct EmotionGridView: View {
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 4)
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: DS.Spacing.md) {
             HStack {
                 Text("Comment tu te sens ?")
-                    .font(.headline)
+                    .font(.system(size: DS.Font.body, weight: .semibold))
                 Spacer()
                 Text("\(selected.count)/\(maxSelection)")
-                    .font(.caption)
+                    .font(.system(size: DS.Font.caption, weight: .medium))
                     .foregroundStyle(.secondary)
             }
 
@@ -34,9 +34,9 @@ struct EmotionGridView: View {
             selected.remove(at: index)
         } else if selected.count < maxSelection {
             selected.append(emotion)
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            Haptics.light()
         } else {
-            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            Haptics.warning()
         }
     }
 }
@@ -61,37 +61,33 @@ private struct EmotionCell: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
             .background {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? emotionColor.opacity(0.15) : Color(.systemGray6))
+                RoundedRectangle(cornerRadius: DS.Radius.chip, style: .continuous)
+                    .fill(isSelected ? emotionColor.opacity(0.15) : Color.dsCard)
             }
             .overlay {
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(isSelected ? emotionColor : .clear, lineWidth: 2)
+                RoundedRectangle(cornerRadius: DS.Radius.chip, style: .continuous)
+                    .strokeBorder(isSelected ? emotionColor : Color.dsBorder, lineWidth: isSelected ? 2 : 1)
             }
-            .foregroundStyle(isSelected ? emotionColor : .primary)
+            .foregroundStyle(isSelected ? emotionColor : Color.dsTextPrimary)
         }
-        .buttonStyle(.plain)
-        .scaleEffect(isSelected ? 1.02 : 1.0)
-        .animation(.easeOut(duration: 0.15), value: isSelected)
+        .buttonStyle(SpringPressStyle())
     }
 
     private var emotionColor: Color {
         switch emotion {
         case .heureux, .beni, .bien, .chanceux, .excite:
-            .green
+            .dsSuccess
         case .confus, .ennuye, .gene, .partage, .nostalgique:
-            .orange
+            .accentAmber
         case .stresse, .depasse, .anxieux, .agite, .frustre:
-            .red
+            .moodAngry
         case .enColere:
-            .red
+            .moodAngry
         case .triste, .decu, .epuise, .seul:
-            .blue
+            .accentPurple
         }
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     struct PreviewWrapper: View {
@@ -101,6 +97,7 @@ private struct EmotionCell: View {
                 EmotionGridView(selected: $selected)
                     .padding()
             }
+            .background(Color.dsBackground)
         }
     }
     return PreviewWrapper()

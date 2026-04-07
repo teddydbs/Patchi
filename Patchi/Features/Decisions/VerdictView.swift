@@ -6,21 +6,20 @@ struct VerdictView: View {
     let decision: Decision
     let verdictType: DecisionReminderType
 
-    @State private var selectedVerdict: Verdict?
-    @State private var whatHappened: String = ""
-    @State private var isRevealed = false
-    @State private var isSaved = false
+    @State private var viewModel = VerdictViewModel()
 
     var body: some View {
         NavigationStack {
             ZStack {
-                // Fond
-                Color(red: 0.96, green: 0.95, blue: 1.0)
-                    .ignoresSafeArea()
+                Color.dsBackground.ignoresSafeArea()
+                BlobBackground(
+                    colors: [.accentPurple, .patchiOrange],
+                    opacity: 0.1
+                )
 
-                if !isRevealed {
+                if !viewModel.isRevealed {
                     revealAnimation
-                } else if isSaved {
+                } else if viewModel.isSaved {
                     completionView
                 } else {
                     verdictForm
@@ -29,7 +28,7 @@ struct VerdictView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    if isRevealed && !isSaved {
+                    if viewModel.isRevealed && !viewModel.isSaved {
                         Button("Fermer") { dismiss() }
                     }
                 }
@@ -40,7 +39,7 @@ struct VerdictView: View {
     // MARK: - Reveal Animation
 
     private var revealAnimation: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: DS.Spacing.xxl) {
             Spacer()
 
             PatchiWithBubble(
@@ -53,17 +52,17 @@ struct VerdictView: View {
             )
 
             Text(decision.title)
-                .font(.title3)
-                .fontWeight(.bold)
+                .font(.patchiTitle(DS.Font.sectionTitle))
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+                .foregroundStyle(Color.dsTextPrimary)
+                .padding(.horizontal, DS.Spacing.xxl)
 
             Spacer()
         }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                withAnimation(.easeInOut(duration: 0.6)) {
-                    isRevealed = true
+                withAnimation(DS.Animation.screen) {
+                    viewModel.isRevealed = true
                 }
             }
         }
@@ -73,162 +72,121 @@ struct VerdictView: View {
 
     private var verdictForm: some View {
         ScrollView {
-            VStack(spacing: 24) {
-                // Patchi
+            VStack(spacing: DS.Spacing.xl) {
                 PatchiView(expression: .thinking, size: .medium)
 
-                // Rappel de la décision originale
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionLabel(text: "Ta décision")
-                    Text(decision.decision)
-                        .font(.subheadline)
-                        .padding(14)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.systemBackground))
-                        .cornerRadius(12)
+                // Decision originale
+                ClayCard(tint: .accentPurple) {
+                    VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+                        Text("Ta décision")
+                            .font(.system(size: DS.Font.caption, weight: .semibold))
+                            .foregroundStyle(Color.dsTextSecondary)
+                        Text(decision.decision)
+                            .font(.system(size: 15))
+                            .foregroundStyle(Color.dsTextPrimary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
-                // Rappel de la prédiction
+                // Prediction + confiance
                 if !decision.prediction.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        SectionLabel(text: "Ta prédiction")
-                        Text(decision.prediction)
-                            .font(.subheadline)
-                            .italic()
-                            .padding(14)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color(.systemBackground))
-                            .cornerRadius(12)
+                    ClayCard {
+                        VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+                            HStack {
+                                Text("Ta prédiction")
+                                    .font(.system(size: DS.Font.caption, weight: .semibold))
+                                    .foregroundStyle(Color.dsTextSecondary)
+                                Spacer()
+                                if let confidence = decision.confidence {
+                                    Text("Confiance : \(confidence) %")
+                                        .font(.system(size: DS.Font.caption, weight: .bold))
+                                        .foregroundStyle(Color.patchiOrange)
+                                }
+                            }
+                            Text(decision.prediction)
+                                .font(.patchiBody(15))
+                                .italic()
+                                .foregroundStyle(Color.dsTextPrimary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
 
-                Divider()
+                // Verdict buttons
+                VStack(alignment: .leading, spacing: DS.Spacing.md) {
+                    Text("Le verdict")
+                        .font(.system(size: DS.Font.body, weight: .semibold))
+                        .foregroundStyle(Color.dsTextPrimary)
 
-                // Verdict
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionLabel(text: "Le verdict")
-
-                    HStack(spacing: 10) {
+                    HStack(spacing: DS.Spacing.sm) {
                         ForEach(Verdict.allCases) { verdict in
                             VerdictButton(
                                 verdict: verdict,
-                                isSelected: selectedVerdict == verdict
+                                isSelected: viewModel.selectedVerdict == verdict
                             ) {
-                                withAnimation(.easeOut(duration: 0.2)) {
-                                    selectedVerdict = verdict
+                                withAnimation(DS.Animation.micro) {
+                                    viewModel.selectedVerdict = verdict
                                 }
-                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                Haptics.medium()
                             }
                         }
                     }
                 }
 
-                // Ce qui s'est passé
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionLabel(text: "Ce qui s'est passé")
+                // Ce qui s'est passe
+                VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+                    Text("Ce qui s'est passé")
+                        .font(.system(size: DS.Font.body, weight: .semibold))
+                        .foregroundStyle(Color.dsTextPrimary)
 
-                    TextEditor(text: $whatHappened)
+                    TextEditor(text: $viewModel.whatHappened)
                         .frame(minHeight: 100)
-                        .padding(10)
-                        .background(Color(.systemBackground))
-                        .cornerRadius(12)
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 12)
-                                .strokeBorder(Color(.systemGray4), lineWidth: 1)
-                        }
+                        .dsTextEditor()
                 }
 
-                // Bouton enregistrer
-                Button {
-                    saveVerdict()
-                } label: {
-                    Text("Enregistrer le verdict")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(selectedVerdict != nil ? Color.purple : Color(.systemGray4))
-                        .cornerRadius(16)
+                PillButton(
+                    title: "Enregistrer le verdict",
+                    style: viewModel.selectedVerdict != nil ? .primary : .secondary
+                ) {
+                    viewModel.saveVerdict(decision: decision, verdictType: verdictType)
                 }
-                .disabled(selectedVerdict == nil)
+                .disabled(viewModel.selectedVerdict == nil)
+                .opacity(viewModel.selectedVerdict != nil ? 1 : 0.5)
             }
-            .padding(20)
+            .padding(DS.Spacing.lg)
         }
     }
 
     // MARK: - Completion
 
     private var completionView: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: DS.Spacing.xxl) {
             Spacer()
 
             PatchiWithBubble(
-                expression: completionExpression,
-                text: completionPhrase,
+                expression: viewModel.completionExpression,
+                text: viewModel.completionPhrase,
                 patchiSize: .large,
                 bubbleStyle: .emotional
             )
 
+            Text("Touche pour fermer")
+                .font(.system(size: DS.Font.caption))
+                .foregroundStyle(Color.dsTextSecondary.opacity(0.5))
+
             Spacer()
         }
-        .padding(20)
+        .padding(DS.Spacing.lg)
+        .onTapGesture { dismiss() }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
                 dismiss()
             }
         }
     }
-
-    // MARK: - Actions
-
-    private func saveVerdict() {
-        guard let verdict = selectedVerdict else { return }
-        let text = whatHappened.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if verdictType == .j30 {
-            decision.verdict30 = verdict
-            decision.whatHappened30 = text.isEmpty ? nil : text
-            decision.status = .reviewed30
-        } else {
-            decision.verdict90 = verdict
-            decision.whatHappened90 = text.isEmpty ? nil : text
-            decision.status = .reviewed90
-        }
-
-        withAnimation {
-            isSaved = true
-        }
-    }
-
-    private var completionExpression: PatchiExpression {
-        switch selectedVerdict {
-        case .right: .celebrating
-        case .partial: .thinking
-        case .wrong: .comforting
-        case nil: .neutral
-        }
-    }
-
-    private var completionPhrase: String {
-        switch selectedVerdict {
-        case .right: "Tu avais vu juste. Fais-toi confiance."
-        case .partial: "Pas tout à fait, mais tu apprends. C'est ça qui compte."
-        case .wrong: "Hé. C'est ok. Chaque erreur est une leçon."
-        case nil: "C'est noté."
-        }
-    }
 }
 
-// MARK: - Components
-
-private struct SectionLabel: View {
-    let text: String
-    var body: some View {
-        Text(text)
-            .font(.headline)
-            .foregroundStyle(.primary)
-    }
-}
+// MARK: - Verdict Button
 
 private struct VerdictButton: View {
     let verdict: Verdict
@@ -241,42 +199,39 @@ private struct VerdictButton: View {
                 Image(systemName: verdict.icon)
                     .font(.title2)
                 Text(verdict.displayName)
-                    .font(.caption)
-                    .fontWeight(.medium)
+                    .font(.system(size: DS.Font.caption, weight: .medium))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .background {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? verdictColor.opacity(0.15) : Color(.systemGray6))
+                RoundedRectangle(cornerRadius: DS.Radius.chip, style: .continuous)
+                    .fill(isSelected ? verdictColor.opacity(0.15) : Color.dsCard)
             }
             .overlay {
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(isSelected ? verdictColor : .clear, lineWidth: 2)
+                RoundedRectangle(cornerRadius: DS.Radius.chip, style: .continuous)
+                    .strokeBorder(isSelected ? verdictColor : Color.dsBorder, lineWidth: isSelected ? 2 : 1)
             }
-            .foregroundStyle(isSelected ? verdictColor : .primary)
+            .foregroundStyle(isSelected ? verdictColor : Color.dsTextPrimary)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(SpringPressStyle())
     }
 
     private var verdictColor: Color {
         switch verdict {
-        case .right: .green
-        case .partial: .orange
-        case .wrong: .red
+        case .right: .dsSuccess
+        case .partial: .accentAmber
+        case .wrong: .dsDestructive
         }
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     VerdictView(
         decision: Decision(
             title: "Changer de travail",
-            context: "Je ne me sens plus à ma place",
+            context: "Je ne me sens plus a ma place",
             prediction: "Je pense que je serai plus heureux",
-            decision: "J'ai donné ma démission",
+            decision: "J'ai donne ma demission",
             importance: 5
         ),
         verdictType: .j30

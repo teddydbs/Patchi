@@ -7,14 +7,23 @@ struct PatchiApp: App {
     private let modelContainer: ModelContainer
 
     init() {
-        let container = try! ModelContainer(for:
-            User.self,
-            CheckIn.self,
-            AccountabilityEntry.self,
-            Decision.self,
-            FutureLetter.self
-        )
-        self.modelContainer = container
+        do {
+            self.modelContainer = try ModelContainer(for:
+                User.self, CheckIn.self, AccountabilityEntry.self, Decision.self, FutureLetter.self
+            )
+        } catch {
+            // Base corrompue ou migration échouée — supprimer et recréer
+            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            let storeURL = appSupport.appendingPathComponent("default.store")
+            for ext in ["", ".wal", ".shm"] {
+                let url = ext.isEmpty ? storeURL : storeURL.appendingPathExtension(ext)
+                try? FileManager.default.removeItem(at: url)
+            }
+            // Retenter avec une base propre — si ça échoue encore, c'est un bug fatal
+            self.modelContainer = try! ModelContainer(for:
+                User.self, CheckIn.self, AccountabilityEntry.self, Decision.self, FutureLetter.self
+            )
+        }
     }
 
     var body: some Scene {

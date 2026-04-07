@@ -4,16 +4,18 @@ struct PatchiView: View {
     let expression: PatchiExpression
     var size: PatchiSize = .medium
     var showShadow: Bool = true
+    var animated: Bool = true
 
     @State private var isBreathing = false
 
     var body: some View {
         patchiBody
             .frame(width: size.dimension, height: size.dimension)
-            .offset(y: isBreathing ? -3 : 3)
+            .offset(y: animated && isBreathing ? -3 : animated ? 3 : 0)
             .animation(
-                .easeInOut(duration: 1.8)
-                .repeatForever(autoreverses: true),
+                animated
+                    ? .easeInOut(duration: 1.8).repeatForever(autoreverses: true)
+                    : nil,
                 value: isBreathing
             )
             .shadow(
@@ -22,7 +24,7 @@ struct PatchiView: View {
                 y: 4
             )
             .onAppear {
-                isBreathing = true
+                if animated { isBreathing = true }
             }
     }
 

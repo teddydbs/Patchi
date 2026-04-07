@@ -84,8 +84,9 @@ private struct NewEntryMenuOverlay: View {
 
     var body: some View {
         ZStack {
-            // Backdrop
-            Color.black.opacity(0.4)
+            // Backdrop opaque flou
+            Rectangle()
+                .fill(.ultraThinMaterial)
                 .ignoresSafeArea()
                 .onTapGesture {
                     withAnimation(.spring(duration: 0.25)) {
@@ -94,41 +95,50 @@ private struct NewEntryMenuOverlay: View {
                 }
 
             // Menu
-            VStack(spacing: 12) {
+            VStack(spacing: DS.Spacing.md) {
                 Spacer()
 
                 NewEntryMenuItem(
                     icon: "face.smiling.inverse",
                     title: "Mood check-in",
                     subtitle: "Comment tu te sens ?",
-                    color: .blue
+                    color: .patchiOrange
                 ) {
                     isPresented = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { onCheckIn() }
                 }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .transition(.asymmetric(
+                    insertion: .move(edge: .bottom).combined(with: .opacity),
+                    removal: .opacity
+                ))
 
                 NewEntryMenuItem(
                     icon: "arrow.triangle.branch",
                     title: "Nouvelle décision",
                     subtitle: "Note une décision importante",
-                    color: .purple
+                    color: .accentPurple
                 ) {
                     isPresented = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { onDecision() }
                 }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .transition(.asymmetric(
+                    insertion: .move(edge: .bottom).combined(with: .opacity),
+                    removal: .opacity
+                ))
 
                 NewEntryMenuItem(
                     icon: "envelope.fill",
                     title: "Lettre au futur moi",
                     subtitle: "Écris à toi dans 6 mois",
-                    color: .orange
+                    color: .accentAmber
                 ) {
                     isPresented = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { onLetter() }
                 }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .transition(.asymmetric(
+                    insertion: .move(edge: .bottom).combined(with: .opacity),
+                    removal: .opacity
+                ))
 
                 // Bouton fermer
                 Button {
@@ -137,13 +147,13 @@ private struct NewEntryMenuOverlay: View {
                     }
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 36))
-                        .foregroundStyle(.white.opacity(0.7))
+                        .font(.system(size: 40))
+                        .foregroundStyle(Color.dsTextSecondary)
                 }
-                .padding(.top, 8)
-                .padding(.bottom, 90) // Au-dessus du tab bar
+                .padding(.top, DS.Spacing.sm)
+                .padding(.bottom, 90)
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, DS.Spacing.lg)
         }
     }
 }
@@ -157,38 +167,43 @@ private struct NewEntryMenuItem: View {
 
     var body: some View {
         Button(action: {
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            Haptics.medium()
             action()
         }) {
-            HStack(spacing: 16) {
+            HStack(spacing: DS.Spacing.md) {
                 Image(systemName: icon)
                     .font(.title2)
                     .foregroundStyle(.white)
                     .frame(width: 48, height: 48)
                     .background(color.gradient)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .clipShape(RoundedRectangle(cornerRadius: DS.Radius.chip, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
+                        .font(.system(size: DS.Font.body, weight: .semibold))
+                        .foregroundStyle(Color.dsTextPrimary)
                     Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: DS.Font.caption))
+                        .foregroundStyle(Color.dsTextSecondary)
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.dsTextSecondary)
             }
-            .padding(14)
+            .padding(DS.Spacing.md)
             .background {
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(.ultraThickMaterial)
+                RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                    .fill(Color.dsCard)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                    )
             }
+            .clayShadow()
         }
-        .buttonStyle(.plain)
+        .buttonStyle(SpringPressStyle())
     }
 }
