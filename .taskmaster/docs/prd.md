@@ -889,6 +889,61 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 
 ---
 
+## Refactoring : Séparation des couches (MVVM)
+
+> **Principe** : Les Views ne doivent contenir que du layout/UI. Toute logique métier, calcul, filtrage, ou accès aux données doit être dans un ViewModel ou un Service.
+
+### Priorité haute — Views sans ViewModel avec logique métier
+
+#### StatsView → créer StatsViewModel
+- Extraire les calculs de stats : `weeklyMoodData`, `monthlyMoodData`, `correlations`, `decisionStats` (pending/reviewed counts)
+- Déplacer les appels `InsightService.dailyMoods()`, `InsightService.activityCorrelations()`, `HeatmapService.generateHeatmap()` dans le ViewModel
+- La View ne doit que binder les résultats pré-calculés
+
+#### QuotesFeedView → créer QuotesViewModel
+- Extraire la logique de tri contextuel par humeur (`filteredQuotes`)
+- Déplacer la gestion des favoris (UserDefaults read/write) dans le ViewModel
+- Déplacer `shareQuote()` (UIKit) dans le ViewModel
+- Déplacer le cache de quotes dans le ViewModel
+
+### Priorité moyenne — Views sans ViewModel avec logique modérée
+
+#### VerdictView → créer VerdictViewModel
+- Extraire `saveVerdict()` (mutation du modèle Decision)
+- Extraire `completionExpression` et `completionPhrase` (logique conditionnelle)
+- La View ne gère que l'affichage et les bindings
+
+#### DecisionListView → créer DecisionListViewModel
+- Extraire `filteredDecisions` (logique de filtrage par statut)
+- Extraire la logique de vérification de verdict dû (`decision.reviewAt30 <= Date()`)
+- Extraire la navigation conditionnelle (quel type de verdict présenter)
+
+### Priorité basse — Views avec ViewModel incomplet
+
+#### HomeView → compléter HomeViewModel
+- Déplacer `pendingDecisions` (filtre) dans le ViewModel
+- Déplacer `hasMoodEntry(on:)` dans le ViewModel
+- Déplacer `dayLetter()` et `currentUserName` dans le ViewModel
+- Le ViewModel existe déjà, il suffit d'y migrer ces computed properties
+
+### Accepté tel quel
+
+- **SettingsView** : pas de ViewModel nécessaire — binding direct sur le modèle User, logique minimale
+- **OnboardingView** : ViewModel en place, longue mais c'est du layout pur (8 étapes)
+- **CheckInView** : ViewModel en place, bonne séparation
+- **AccountabilityView** : ViewModel en place, bonne séparation
+
+### Règle pour le futur
+
+Toute nouvelle View de feature DOIT avoir un ViewModel associé si elle contient :
+- Du filtrage ou tri de données
+- Des calculs ou transformations
+- De la persistance (save, delete, update)
+- Des appels à des Services
+- De la logique conditionnelle métier (pas du simple if/else d'affichage)
+
+---
+
 **End of PRD**
 
 *This PRD is optimized for TaskMaster AI task generation. All requirements include task breakdown hints, complexity estimates, and dependency mapping.*
