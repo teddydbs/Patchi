@@ -47,5 +47,14 @@
     <string>Patchi accède à tes photos pour les ajouter à tes entrées.</string>
     <key>NSFaceIDUsageDescription</key>
     <string>Patchi utilise Face ID pour protéger ton journal.</string>
+    <key>UIAppFonts</key>
+    <array>
+        <string>Fonts/CrimsonPro-Regular.ttf</string>
+        <string>Fonts/CrimsonPro-Italic.ttf</string>
+        <string>Fonts/CrimsonPro-Medium.ttf</string>
+        <string>Fonts/CrimsonPro-MediumItalic.ttf</string>
+        <string>Fonts/CrimsonPro-SemiBold.ttf</string>
+        <string>Fonts/CrimsonPro-SemiBoldItalic.ttf</string>
+    </array>
 </dict>
 </plist>

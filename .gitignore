@@ -42,3 +42,6 @@ node_modules/
 # TaskMaster scripts/reports
 .taskmaster/scripts/
 .taskmaster/reports/
+.design-studio/
+Screen concurence/
+hist.md

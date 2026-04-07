@@ -32,5 +32,18 @@ targets:
       path: Patchi/Patchi.entitlements
     dependencies: []
     scheme:
-      testTargets: []
-      gatherCoverageData: false
+      testTargets:
+        - PatchiTests
+      gatherCoverageData: true
+  PatchiTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: PatchiTests
+    dependencies:
+      - target: Patchi
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Patchi.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Patchi"
+        BUNDLE_LOADER: "$(TEST_HOST)"
