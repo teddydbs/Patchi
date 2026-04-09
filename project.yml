@@ -14,6 +14,14 @@ settings:
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
 
+packages:
+  Lottie:
+    url: https://github.com/airbnb/lottie-ios
+    from: "4.6.0"
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: "2.30.0"
+
 targets:
   Patchi:
     type: application
@@ -30,7 +38,10 @@ targets:
         GENERATE_INFOPLIST_FILE: false
     entitlements:
       path: Patchi/Patchi.entitlements
-    dependencies: []
+    dependencies:
+      - package: Lottie
+      - package: Supabase
+        product: Supabase
     scheme:
       testTargets:
         - PatchiTests
