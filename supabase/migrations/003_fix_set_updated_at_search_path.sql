@@ -1,5 +1,5 @@
 -- ============================================================================
--- Patchi — Fix function_search_path_mutable sur set_updated_at
+-- Kokora — Fix function_search_path_mutable sur set_updated_at
 -- Migration: 003_fix_set_updated_at_search_path
 -- ============================================================================
 -- Le linter sécurité Supabase signale que `set_updated_at` n'a pas de

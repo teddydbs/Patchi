@@ -1,4 +1,4 @@
-# Documentation Swift — Patchi
+# Documentation Swift — Kokora
 
 > Référence rapide des frameworks utilisés dans le projet. Récupérée via context7 le 2026-04-01.
 
@@ -35,7 +35,7 @@ class CheckIn {
 
 ```swift
 @main
-struct PatchiApp: App {
+struct KokoraApp: App {
     var body: some Scene {
         WindowGroup { ContentView() }
             .modelContainer(for: [
@@ -145,7 +145,7 @@ NavigationStack(path: $router.path) {
 }
 ```
 
-### Animations personnalisées (400-600ms pour Patchi)
+### Animations personnalisées (400-600ms pour Kokora)
 
 ```swift
 // Transition fluide de couleur d'humeur
@@ -155,7 +155,7 @@ withAnimation(.easeInOut(duration: 0.5)) {
 
 // Transition slide pour les vues conditionnelles
 if isActive {
-    PatchiView(expression: .happy)
+    KokoraView(expression: .happy)
         .transition(.slide)
 }
 
@@ -166,7 +166,7 @@ withAnimation(.spring(duration: 0.6)) {
 
 // Animation élastique
 withAnimation(.elasticEaseInEaseOut(duration: 0.5)) {
-    patchiOffset.toggle()
+    kokoraOffset.toggle()
 }
 ```
 
@@ -202,7 +202,7 @@ ContentView()
 ### Charger les produits
 
 ```swift
-let products = try await Product.products(for: ["com.patchi.premium.yearly"])
+let products = try await Product.products(for: ["com.kokora.premium.yearly"])
 ```
 
 ### Flow d'achat
@@ -240,7 +240,7 @@ func refreshPurchasedProducts() async {
         switch verificationResult {
         case .verified(let transaction):
             // Vérifier le type de produit et activer premium
-            if transaction.productID == "com.patchi.premium.yearly" {
+            if transaction.productID == "com.kokora.premium.yearly" {
                 isPremium = true
             }
         case .unverified(_, _):
@@ -362,7 +362,7 @@ do {
 
 ```swift
 let content = UNMutableNotificationContent()
-content.title = "Patchi"
+content.title = "Kokora"
 content.body = "Comment s'est passée ta journée ?"
 content.sound = .default
 ```
@@ -541,8 +541,8 @@ class SpeechService: NSObject, ObservableObject {
 ### Permissions nécessaires dans Info.plist
 
 ```
-NSMicrophoneUsageDescription — "Patchi utilise le micro pour la saisie vocale."
-NSSpeechRecognitionUsageDescription — "Patchi transcrit ta voix en texte."
+NSMicrophoneUsageDescription — "Kokora utilise le micro pour la saisie vocale."
+NSSpeechRecognitionUsageDescription — "Kokora transcrit ta voix en texte."
 ```
 
 ---
@@ -566,7 +566,7 @@ class BiometricService {
         do {
             return try await context.evaluatePolicy(
                 .deviceOwnerAuthenticationWithBiometrics,
-                localizedReason: "Déverrouille ton journal Patchi"
+                localizedReason: "Déverrouille ton journal Kokora"
             )
         } catch {
             return false
@@ -584,7 +584,7 @@ class BiometricService {
 ### Permission dans Info.plist
 
 ```
-NSFaceIDUsageDescription — "Patchi utilise Face ID pour protéger ton journal."
+NSFaceIDUsageDescription — "Kokora utilise Face ID pour protéger ton journal."
 ```
 
 ---
@@ -633,7 +633,7 @@ struct HeatmapWidget: Widget {
         StaticConfiguration(kind: kind, provider: HeatmapTimelineProvider()) { entry in
             HeatmapWidgetView(entry: entry)
         }
-        .configurationDisplayName("Heatmap Patchi")
+        .configurationDisplayName("Heatmap Kokora")
         .description("Tes 7 derniers jours d'un coup d'œil.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }

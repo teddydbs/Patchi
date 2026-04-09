@@ -1,5 +1,5 @@
 -- ============================================================================
--- Patchi — RPC pour self-delete du compte
+-- Kokora — RPC pour self-delete du compte
 -- Migration: 002_delete_user_rpc
 -- ============================================================================
 -- Expose une fonction `delete_account()` que le client peut appeler via RPC.

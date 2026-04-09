@@ -1,10 +1,10 @@
-# Project: Patchi — Journal d'intégrité personnelle
+# Project: Kokora — Journal d'intégrité personnelle
 
 > **Taskmaster-Managed iOS Project**
 
 ## Project Overview
 
-App iOS native en SwiftUI pour le journaling émotionnel, l'accountability personnel, et le journal de décisions. En français natif. Mascotte Patchi (petite patate orange chibi).
+App iOS native en SwiftUI pour le journaling émotionnel, l'accountability personnel, et le journal de décisions. En français natif. Mascotte Kokora (petite patate orange chibi).
 
 **Key Documents:**
 - PRD: `.taskmaster/docs/prd.md` - Product requirements complets
@@ -36,8 +36,8 @@ App iOS native en SwiftUI pour le journaling émotionnel, l'accountability perso
 ## Architecture
 
 ```
-Patchi/
-├── App/          → PatchiApp.swift, AppState, AppRouter
+Kokora/
+├── App/          → KokoraApp.swift, AppState, AppRouter
 ├── Models/       → @Model SwiftData (User, CheckIn, AccountabilityEntry, Decision, FutureLetter)
 │   └── Enums/    → Emotion, Activity, HeatmapColor, Verdict, DecisionStatus, AppTheme
 ├── Features/     → Un dossier par feature (View + ViewModel)
@@ -54,7 +54,7 @@ Patchi/
 ├── Services/     → SupabaseClient (singleton), AuthService (Apple/Email/Google),
 │                   NotificationService, SpeechService, StoreKitService, HeatmapService,
 │                   ReformulationService, InsightService, BiometricService
-├── Components/   → Patchi/, HeatmapGrid/, MoodSlider/, VoiceInput/, PremiumGate/, CalendarStrip/
+├── Components/   → Kokora/, HeatmapGrid/, MoodSlider/, VoiceInput/, PremiumGate/, CalendarStrip/
 ├── Extensions/   → Color+Mood, Date+Helpers, View+Transitions
 └── Resources/    → Localizable.strings, Assets.xcassets, Fonts/, Animations/
 ```
@@ -74,7 +74,7 @@ Patchi/
 
 ## Typographie
 
-- **Crimson Pro italique** — Titres, questions Patchi, citations, reformulations (émotionnel)
+- **Crimson Pro italique** — Titres, questions Kokora, citations, reformulations (émotionnel)
 - **SF Pro (système)** — Labels, data, interface (fonctionnel)
 
 ## Couleurs d'humeur (vives)
@@ -106,16 +106,16 @@ task-master set-status --id=<id> --status=done
 ### Workflow
 1. Création dans **After Effects** (plugin Bodymovin) ou éditeur **LottieFiles.com**
 2. Export en `.lottie` (compressé) ou `.json`
-3. Fichiers placés dans `Patchi/Resources/Animations/`
+3. Fichiers placés dans `Kokora/Resources/Animations/`
 4. Intégration via `LottieView` en SwiftUI
 
 ### Convention de nommage des fichiers
 ```
-patchi_{état}_{variante}.lottie
+kokora_{état}_{variante}.lottie
 ```
-Exemples : `patchi_idle_breathing.lottie`, `patchi_happy_bounce.lottie`, `patchi_sad_comfort.lottie`, `patchi_celebrate_confetti.lottie`
+Exemples : `kokora_idle_breathing.lottie`, `kokora_happy_bounce.lottie`, `kokora_sad_comfort.lottie`, `kokora_celebrate_confetti.lottie`
 
-### Animations Patchi prévues
+### Animations Kokora prévues
 
 | État | Description | Usage |
 |------|-------------|-------|
@@ -132,7 +132,7 @@ Exemples : `patchi_idle_breathing.lottie`, `patchi_happy_bounce.lottie`, `patchi
 - **Transitions d'humeur** : morphing via segments d'animation (ex: frame 0-30 = idle → happy)
 - **Performance** : toujours utiliser `.loopMode(.loop)` pour idle, `.loopMode(.playOnce)` pour réactions
 - **Taille** : animations max 150KB chacune, 512x512pt de résolution
-- **Couleurs** : les couleurs de Patchi (orange #FF8C42) doivent être paramétrables via `ColorValueProvider` pour s'adapter au thème
+- **Couleurs** : les couleurs de Kokora (orange #FF8C42) doivent être paramétrables via `ColorValueProvider` pour s'adapter au thème
 - **Spring natif** : garder `withAnimation(.spring(response: 0.4, dampingFraction: 0.7))` pour les transitions UI autour des animations Lottie
 - **Haptics** : coupler les moments clés des animations avec `UIImpactFeedbackGenerator` (celebrate → .heavy, encourage → .light)
 
@@ -140,11 +140,11 @@ Exemples : `patchi_idle_breathing.lottie`, `patchi_happy_bounce.lottie`, `patchi
 ```swift
 import Lottie
 
-struct PatchiAnimatedView: View {
-    let state: PatchiState
+struct KokoraAnimatedView: View {
+    let state: KokoraState
     
     var body: some View {
-        LottieView(animation: .named("patchi_\(state.animationName)"))
+        LottieView(animation: .named("kokora_\(state.animationName)"))
             .playing(loopMode: state.isLooping ? .loop : .playOnce)
             .frame(width: 200, height: 200)
     }
@@ -159,4 +159,4 @@ struct PatchiAnimatedView: View {
 - Ne jamais utiliser `rm` — utiliser `trash` à la place
 - Utiliser `/swiftui-pro` pour review le code SwiftUI
 - Utiliser `/verification-before-completion` avant de commit
-- **Après chaque `xcodegen generate`** : ré-écrire `Patchi/Patchi.entitlements` avec Sign in with Apple (XcodeGen l'écrase)
+- **Après chaque `xcodegen generate`** : ré-écrire `Kokora/Kokora.entitlements` avec Sign in with Apple (XcodeGen l'écrase)

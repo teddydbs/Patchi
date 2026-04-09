@@ -1,5 +1,5 @@
 -- ============================================================================
--- Patchi — Initial database schema
+-- Kokora — Initial database schema
 -- Migration: 001_initial_schema
 -- ============================================================================
 -- 5 user-owned tables + profiles (linked to auth.users)

@@ -10,7 +10,7 @@ iOS 17+ · SwiftUI · SwiftData · MVVM
 1. [Résumé exécutif](#1-résumé-exécutif)
 2. [Vision & Positionnement](#2-vision--positionnement)
 3. [Utilisateur cible](#3-utilisateur-cible)
-4. [Patchi — La mascotte](#4-patchi--la-mascotte)
+4. [Kokora — La mascotte](#4-kokora--la-mascotte)
 5. [Identité visuelle](#5-identité-visuelle)
 6. [Onboarding](#6-onboarding)
 7. [Navigation](#7-navigation)
@@ -37,7 +37,7 @@ Le marché francophone est non servi. Le leader mondial du journaling, avec 13 m
 | Plateforme | iOS 17+ (Android en V2)                                              |
 | Langue     | Français natif — pensé en français, pas traduit                      |
 | Modèle     | Freemium — gratuit avec accès core, premium ~35€/an                  |
-| Mascotte   | Patchi — petite patate ronde orange, style chibi, visuels déjà créés |
+| Mascotte   | Kokora — petite patate ronde orange, style chibi, visuels déjà créés |
 | Tech stack | SwiftUI · SwiftData · CloudKit · StoreKit 2 · MVVM                   |
 
 ---
@@ -62,7 +62,7 @@ Elle ne juge pas. Elle observe. Elle se souvient. Elle aide l'utilisateur à se 
 | Accountability quotidien | Gratuit       |
 | Journal de décisions     | Gratuit       |
 | Français natif           | Gratuit       |
-| Mascotte Patchi          | Gratuit       |
+| Mascotte Kokora          | Gratuit       |
 | Lettre au futur moi      | Gratuit       |
 
 ### 2.3 Analyse concurrentielle
@@ -73,7 +73,7 @@ Elle ne juge pas. Elle observe. Elle se souvient. Elle aide l'utilisateur à se 
 | Journal décisions   | ❌         | ❌      | ✅        |
 | Accountability      | ❌         | ❌      | ✅        |
 | Lettre au futur moi | ❌         | ❌      | ✅        |
-| Mascotte expressive | ✅ basique | ❌      | ✅ Patchi |
+| Mascotte expressive | ✅ basique | ❌      | ✅ Kokora |
 | Heatmap progression | ❌         | ❌      | ✅        |
 | Mood tracker        | ✅         | ✅      | ✅        |
 | Couleurs dynamiques | ❌         | ❌      | ✅        |
@@ -111,13 +111,13 @@ L'utilisateur cible est en construction active de soi. Il veut devenir une meill
 
 ---
 
-## 4. Patchi — La mascotte
+## 4. Kokora — La mascotte
 
 ### 4.1 Description physique
 
-Patchi est une petite patate ronde et orange. Son corps est ovale légèrement triangulaire arrondi par le bas — stable, ancré, solide. Sa peau est orange vif et chaleureux, avec de petits bras et jambes expressifs. Ses yeux sont deux grands cercles noirs brillants avec des reflets blancs qui lui donnent une vie immédiate. Deux petites joues rosées permanentes. Une bouche simple et expressive qui change selon les contextes.
+Kokora est une petite patate ronde et orange. Son corps est ovale légèrement triangulaire arrondi par le bas — stable, ancré, solide. Sa peau est orange vif et chaleureux, avec de petits bras et jambes expressifs. Ses yeux sont deux grands cercles noirs brillants avec des reflets blancs qui lui donnent une vie immédiate. Deux petites joues rosées permanentes. Une bouche simple et expressive qui change selon les contextes.
 
-> Les visuels de Patchi sont déjà créés et validés.
+> Les visuels de Kokora sont déjà créés et validés.
 
 ### 4.2 Style graphique
 
@@ -129,14 +129,14 @@ Patchi est une petite patate ronde et orange. Son corps est ovale légèrement t
 
 ### 4.3 Personnalité et ton de voix
 
-Patchi ne parle pas beaucoup. C'est sa force. Quand elle apparaît dans l'app, c'est que quelque chose d'important se passe. Elle dit peu. Elle dit juste.
+Kokora ne parle pas beaucoup. C'est sa force. Quand elle apparaît dans l'app, c'est que quelque chose d'important se passe. Elle dit peu. Elle dit juste.
 
 - Tutoie l'utilisateur
 - Sobre et directe — jamais d'exclamations excessives
 - Bienveillante mais pas condescendante
 - Ne félicite pas pour rien, ne punit pas non plus
 
-**Exemples de phrases de Patchi :**
+**Exemples de phrases de Kokora :**
 
 - _"C'est noté."_ — après une entrée
 - _"Tu y es. Reviens demain."_ — confirmation de streak
@@ -147,7 +147,7 @@ Patchi ne parle pas beaucoup. C'est sa force. Quand elle apparaît dans l'app, c
 
 ### 4.4 Présence dans l'app
 
-Patchi n'est pas omniprésente. Elle apparaît dans des moments précis et significatifs :
+Kokora n'est pas omniprésente. Elle apparaît dans des moments précis et significatifs :
 
 - Onboarding — premier contact, présentation
 - Après chaque check-in — reformulation de 3 secondes puis disparaît
@@ -162,7 +162,7 @@ Patchi n'est pas omniprésente. Elle apparaît dans des moments précis et signi
 
 ### 5.1 Direction artistique
 
-Le design s'inspire d'apps de journaling modernes — Bear, Finch — avec des cards arrondies, de grandes typographies, beaucoup d'espace, et une navigation intuitive. La différence principale est le système de couleurs dynamiques selon l'humeur et la présence de Patchi.
+Le design s'inspire d'apps de journaling modernes — Bear, Finch — avec des cards arrondies, de grandes typographies, beaucoup d'espace, et une navigation intuitive. La différence principale est le système de couleurs dynamiques selon l'humeur et la présence de Kokora.
 
 ### 5.2 Système de couleurs dynamiques selon l'humeur
 
@@ -191,7 +191,7 @@ L'intensité du carré reflète l'importance déclarée de l'action (1 à 5 éto
 
 ### 5.4 Typographie
 
-- **Crimson Pro italique** — titres, questions de Patchi, citations, reformulations. Tout ce qui est émotionnel.
+- **Crimson Pro italique** — titres, questions de Kokora, citations, reformulations. Tout ce qui est émotionnel.
 - **SF Pro (système iOS)** — labels, data, interface. Tout ce qui est fonctionnel.
 
 ### 5.5 Animations
@@ -200,7 +200,7 @@ L'intensité du carré reflète l'importance déclarée de l'action (1 à 5 éto
 - Heatmap — carrés apparaissent un par un de gauche à droite
 - Reformulation — texte apparaît mot par mot
 - Changement couleur humeur — transition fluide, jamais brusque
-- Patchi — légère oscillation verticale permanente, elle "respire"
+- Kokora — légère oscillation verticale permanente, elle "respire"
 - Mode jour → nuit — interface s'assombrit légèrement le soir
 
 ---
@@ -219,14 +219,14 @@ L'intensité du carré reflète l'importance déclarée de l'action (1 à 5 éto
 
 | #   | Étape             | Contenu & logique                                                                                                       |
 | --- | ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1   | Patchi apparaît   | Plein écran coloré. Patchi flotte doucement. _"Salut. Moi c'est Patchi."_ Bouton : _"Salut Patchi !"_                   |
-| 2   | Prénom            | Patchi demande : _"Et toi, comment tu t'appelles ?"_ Champ texte unique. Utilisé partout ensuite.                       |
+| 1   | Kokora apparaît   | Plein écran coloré. Kokora flotte doucement. _"Salut. Moi c'est Kokora."_ Bouton : _"Salut Kokora !"_                   |
+| 2   | Prénom            | Kokora demande : _"Et toi, comment tu t'appelles ?"_ Champ texte unique. Utilisé partout ensuite.                       |
 | 3   | Première question | Grande typographie italique. _"Aujourd'hui, qu'est-ce qui t'a manqué ?"_ Texte libre. Pas de placeholder biaisé.        |
-| 4   | Reformulation     | Patchi reformule en vérité. _"sport"_ → _"Tu veux prendre soin de toi."_ Grande typo sur fond coloré. 3 secondes.       |
-| 5   | Premier carré     | Heatmap vide avec 1 carré allumé — aujourd'hui. Patchi : _"Jour 1. Reviens demain."_                                    |
-| 6   | Rappels           | Double slider heure début/fin. Nombre de rappels configurable. Patchi : _"Je t'enverrai un signe quand c'est l'heure."_ |
+| 4   | Reformulation     | Kokora reformule en vérité. _"sport"_ → _"Tu veux prendre soin de toi."_ Grande typo sur fond coloré. 3 secondes.       |
+| 5   | Premier carré     | Heatmap vide avec 1 carré allumé — aujourd'hui. Kokora : _"Jour 1. Reviens demain."_                                    |
+| 6   | Rappels           | Double slider heure début/fin. Nombre de rappels configurable. Kokora : _"Je t'enverrai un signe quand c'est l'heure."_ |
 | 7   | Offre d'essai     | Sobre. _"7 jours pour voir si ça te parle. Pas de carte bancaire."_ Bouton Essayer + lien Continuer sans abonnement.    |
-| 8   | Création compte   | Patchi : _"Pour ne rien perdre, crée ton espace."_ Email + mot de passe. Sign in with Apple disponible.                 |
+| 8   | Création compte   | Kokora : _"Pour ne rien perdre, crée ton espace."_ Email + mot de passe. Sign in with Apple disponible.                 |
 
 ---
 
@@ -236,7 +236,7 @@ L'intensité du carré reflète l'importance déclarée de l'action (1 à 5 éto
 
 | Tab | Nom         | Contenu                                                                                                                                                                                  |
 | --- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ☀️  | Aujourd'hui | Écran d'accueil. Date en Crimson Pro italique. Bande calendrier semaine. Défi quotidien avec countdown. Wisdom hebdomadaire si applicable. Citations du moment. Patchi discrète en haut. |
+| ☀️  | Aujourd'hui | Écran d'accueil. Date en Crimson Pro italique. Bande calendrier semaine. Défi quotidien avec countdown. Wisdom hebdomadaire si applicable. Citations du moment. Kokora discrète en haut. |
 | 💬  | Citations   | Feed swipeable plein écran. Grande typo italique. Fond coloré selon catégorie. Catégories filtrables. Favori + partage.                                                                  |
 | ＋  | Nouveau     | Bouton central surélevé. Menu contextuel : Mood check-in · Nouvelle décision · Lettre au futur moi.                                                                                      |
 | 📈  | Stats       | Heatmap 90 jours. Graphiques d'humeur hebdo et mensuel. Corrélations activités ↔ humeur. Countdown vers prochains insights. Stats de décisions (premium).                                |
@@ -250,13 +250,13 @@ L'intensité du carré reflète l'importance déclarée de l'action (1 à 5 éto
 
 | Feature               | Description                                                                                                                                | Accès   |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
-| Slider d'humeur       | Curseur avec visage Patchi animé de 1 (épuisé) à 5 (en feu). Couleur de fond change en temps réel. Plusieurs check-ins par jour possibles. | Gratuit |
+| Slider d'humeur       | Curseur avec visage Kokora animé de 1 (épuisé) à 5 (en feu). Couleur de fond change en temps réel. Plusieurs check-ins par jour possibles. | Gratuit |
 | Sélection d'activités | Grille scrollable. Jusqu'à 10 sélectionnables. 20 activités proposées + création personnalisée après J+7.                                  | Gratuit |
-| Sélection d'émotions  | Grille scrollable. Jusqu'à 10 sélectionnables. 20 émotions avec visage Patchi correspondant.                                               | Gratuit |
+| Sélection d'émotions  | Grille scrollable. Jusqu'à 10 sélectionnables. 20 émotions avec visage Kokora correspondant.                                               | Gratuit |
 | Titre optionnel       | Une ligne pour nommer l'entrée.                                                                                                            | Gratuit |
 | Note libre            | Texte illimité ou enregistrement vocal via SFSpeechRecognizer iOS natif.                                                                   | Gratuit |
 | Photo optionnelle     | 1 photo par entrée depuis galerie ou caméra.                                                                                               | Gratuit |
-| Reformulation Patchi  | Après check-in, Patchi traduit les mots de l'utilisateur en vérité sur lui. 3 secondes puis disparaît.                                     | Gratuit |
+| Reformulation Kokora  | Après check-in, Kokora traduit les mots de l'utilisateur en vérité sur lui. 3 secondes puis disparaît.                                     | Gratuit |
 
 ### 8.2 Liste des activités
 
@@ -282,7 +282,7 @@ Heureux · Béni · Bien · Chanceux · Excité · Confus · Ennuyé · Gêné �
 | Boucles ouvertes  | Chaque décision non reviewée crée une card "en attente de verdict" visible dans le journal.                                     | Gratuit |
 | Rappel J+30       | Notification contextuelle avec titre de la décision à 30 jours exactement. Écran dédié avec décision originale + champ verdict. | Gratuit |
 | Rappel J+90       | Idem à 90 jours. Verdict : j'avais raison / partiellement / tort.                                                               | Gratuit |
-| Moment de vérité  | Écran soigné : décision originale, prédiction, verdict, ce qui s'est passé. Patchi présente. Moment de conversion vers premium. | Gratuit |
+| Moment de vérité  | Écran soigné : décision originale, prédiction, verdict, ce qui s'est passé. Kokora présente. Moment de conversion vers premium. | Gratuit |
 
 ### 8.6 Accountability tracker
 
@@ -298,14 +298,14 @@ Heureux · Béni · Bien · Chanceux · Excité · Confus · Ennuyé · Gêné �
 | Feature      | Description                                                                                                                       | Accès   |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | J+1 à J+3    | Même question chaque soir : _"Qu'est-ce qui t'a manqué aujourd'hui ?"_ Analyse des mots-clés.                                     | Gratuit |
-| J+3          | Patchi propose des intentions basées sur les mots récurrents. _"Tu sembles penser souvent à ton corps. Tu veux qu'on suive ça ?"_ | Gratuit |
+| J+3          | Kokora propose des intentions basées sur les mots récurrents. _"Tu sembles penser souvent à ton corps. Tu veux qu'on suive ça ?"_ | Gratuit |
 | J+4 et après | Pool de 20 formulations différentes selon les thèmes identifiés. Templates intelligents, aucune IA.                               | Gratuit |
 
 ### 8.8 Lettre au futur moi
 
 | Feature   | Description                                                                                          | Accès   |
 | --------- | ---------------------------------------------------------------------------------------------------- | ------- |
-| Écriture  | Une fois par mois, Patchi invite à écrire une lettre à soi dans 6 mois. Scellée après envoi.         | Gratuit |
+| Écriture  | Une fois par mois, Kokora invite à écrire une lettre à soi dans 6 mois. Scellée après envoi.         | Gratuit |
 | Livraison | Notification spéciale 6 mois jour pour jour. _"Une lettre t'attendait."_ Animation d'ouverture.      | Gratuit |
 | Réponse   | L'utilisateur peut répondre à son passé. Cette réponse devient une nouvelle lettre pour dans 6 mois. | Gratuit |
 
@@ -323,7 +323,7 @@ Heureux · Béni · Bien · Chanceux · Excité · Confus · Ennuyé · Gêné �
 
 | Feature                 | Description                                                                                                                              | Accès   |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| Session guidée          | Chaque dimanche soir, mode spécial. Session 5-7 min. Patchi guide le bilan.                                                              | Gratuit |
+| Session guidée          | Chaque dimanche soir, mode spécial. Session 5-7 min. Kokora guide le bilan.                                                              | Gratuit |
 | Questions contextuelles | L'app relit les entrées de la semaine et pose des questions dessus. _"Lundi tu semblais épuisé. Est-ce que ça a changé quelque chose ?"_ | Gratuit |
 
 ### 8.11 Wisdom hebdomadaire
@@ -355,7 +355,7 @@ Heureux · Béni · Bien · Chanceux · Excité · Confus · Ennuyé · Gêné �
 | Palier    | Contenu                                                                | Accès       |
 | --------- | ---------------------------------------------------------------------- | ----------- |
 | J+1 à J+3 | _"Encore X check-ins avant tes premiers patterns."_ Countdown visible. | Gratuit     |
-| J+3       | Première micro-observation de Patchi.                                  | Gratuit     |
+| J+3       | Première micro-observation de Kokora.                                  | Gratuit     |
 | J+7       | Deuxième insight — tendances d'humeur de la semaine.                   | Gratuit     |
 | J+30      | Patterns complets — thèmes récurrents, activités impactantes.          | **Premium** |
 
@@ -386,7 +386,7 @@ Heureux · Béni · Bien · Chanceux · Excité · Confus · Ennuyé · Gêné �
 | Feature             | Description                                                      | Accès   |
 | ------------------- | ---------------------------------------------------------------- | ------- |
 | Compteur de reviews | _"Tu as reviewé X décisions cette année."_ Positif et cumulatif. | Gratuit |
-| Palier J+30         | 30 jours consécutifs débloquent une Wisdom spéciale de Patchi.   | Gratuit |
+| Palier J+30         | 30 jours consécutifs débloquent une Wisdom spéciale de Kokora.   | Gratuit |
 
 ### 8.18 Sécurité & données
 
@@ -408,7 +408,7 @@ Heureux · Béni · Bien · Chanceux · Excité · Confus · Ennuyé · Gêné �
 
 | Feature        | Description                                                                                                               | Accès       |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| Bilan narratif | Chaque année à la date d'anniversaire : récit de progression, décisions, patterns, accomplissements. Présenté par Patchi. | **Premium** |
+| Bilan narratif | Chaque année à la date d'anniversaire : récit de progression, décisions, patterns, accomplissements. Présenté par Kokora. | **Premium** |
 
 ### 8.21 Personnalisation
 
@@ -430,7 +430,7 @@ Laisser l'utilisateur accumuler de la valeur gratuitement pendant 30-60 jours, p
 - Toutes les saisies illimitées (check-ins, décisions, lettres)
 - Heatmap 90 jours complète
 - Graphiques d'humeur hebdomadaires et mensuels
-- Reformulations Patchi
+- Reformulations Kokora
 - Citations, défi quotidien, wisdom hebdomadaire
 - Lettre au futur moi + livraison 6 mois
 - Rituel du dimanche
@@ -474,7 +474,7 @@ Le moment idéal est le premier Moment de Vérité à J+30. La proposition premi
 | --------------------------- | --------------------------------------------------------------------------------------------------- |
 | Heatmap visuelle            | Progression rouge → vert sur 90 jours. Voir ses carrés évoluer est une récompense en soi.           |
 | Boucles ouvertes            | Chaque décision non reviewée = card visible dans le journal. Psychologiquement difficile à ignorer. |
-| Insights progressifs        | Valeur à J+3, J+7, J+30. L'utilisateur ne reste jamais longtemps sans feedback de Patchi.           |
+| Insights progressifs        | Valeur à J+3, J+7, J+30. L'utilisateur ne reste jamais longtemps sans feedback de Kokora.           |
 | Lettre au futur moi         | Driver long terme le plus puissant. Une fois qu'on a écrit une lettre, on revient dans 6 mois.      |
 | Widget iOS                  | Présence passive sur l'écran d'accueil. _"2 décisions en attente de verdict."_                      |
 | Notifications contextuelles | Jamais génériques. Mentionnent toujours le contenu réel de l'utilisateur. 5 types distincts.        |
@@ -528,7 +528,7 @@ Le moment idéal est le premier Moment de Vérité à J+30. La proposition premi
   note: String?
   photoData: Data?
   isVoiceEntry: Bool
-  reformulation: String?    // phrase Patchi
+  reformulation: String?    // phrase Kokora
 }
 
 // AccountabilityEntry
@@ -607,7 +607,7 @@ NotificationService    → scheduling des 5 types via UNCalendarNotificationTrig
 SpeechService          → wrapper SFSpeechRecognizer avec gestion permissions
 StoreKitService        → produits, trial, Transaction.currentEntitlements
 HeatmapService         → calcul couleurs et données sur 90 jours
-ReformulationService   → dictionary mots-clés → phrases Patchi, 100% local
+ReformulationService   → dictionary mots-clés → phrases Kokora, 100% local
 InsightService         → patterns et corrélations sur les entrées
 BiometricService       → LocalAuthentication wrapper
 CloudSyncService       → CloudKit sync uniquement pour users premium
@@ -685,9 +685,9 @@ Services/
   CloudSyncService.swift
 
 Components/
-  Patchi/
-    PatchiView.swift
-    PatchiExpression.swift
+  Kokora/
+    KokoraView.swift
+    KokoraExpression.swift
   HeatmapGrid/
     HeatmapGridView.swift
     HeatmapCell.swift
@@ -720,7 +720,7 @@ Widget/
 - **Couleurs dynamiques** — `Color+Mood.swift` avec computed property sur `moodScore`. Injecté via `@Environment` dans tous les écrans concernés.
 - **StoreKit 2** — `introductoryOffer` pour trial 7 jours sans CB. `Transaction.currentEntitlements` vérifié à chaque lancement.
 - **ReformulationService** — `Dictionary<String, [String]>` de mots-clés. Analyse tokenisée du texte, retourne la phrase la plus pertinente.
-- **PatchiView** — Component réutilisable avec `enum PatchiExpression`. Animation via `withAnimation` + `offset`. Visuel importé depuis assets.
+- **KokoraView** — Component réutilisable avec `enum KokoraExpression`. Animation via `withAnimation` + `offset`. Visuel importé depuis assets.
 
 ---
 
@@ -735,7 +735,7 @@ Widget/
 | Pas de paywall onboarding           | La valeur d'abord, la proposition après.                                                    |
 | Essai sans CB                       | StoreKit 2 `introductoryOffer`. Réduit drastiquement la friction d'activation.              |
 | CloudKit premium uniquement         | Évite les coûts serveur sur les users gratuits. Local-first pour tous.                      |
-| Mascotte Patchi                     | Petite patate orange chibi. Visuels déjà créés et validés.                                  |
+| Mascotte Kokora                     | Petite patate orange chibi. Visuels déjà créés et validés.                                  |
 | Graphiques humeur gratuits          | C'est le cœur du produit. Les mettre en premium serait contre-productif.                    |
 | Pas de sélection couleur onboarding | Dilue le momentum. À mettre dans Settings.                                                  |
 | Conversion au moment J+30           | Premier moment de vérité = premier moment émotionnel fort = meilleur moment pour convertir. |
@@ -746,7 +746,7 @@ Widget/
 
 ### V1 — MVP
 
-- [ ] Onboarding complet 8 étapes avec Patchi
+- [ ] Onboarding complet 8 étapes avec Kokora
 - [ ] Mood check-in avec slider, activités, émotions, notes, voix, photo
 - [ ] Accountability tracker du soir
 - [ ] Journal de décisions avec rappels J+30 et J+90
@@ -760,7 +760,7 @@ Widget/
 - [ ] Notifications 5 types configurables
 - [ ] StoreKit 2 + essai 7 jours sans CB
 - [ ] Sign in with Apple
-- [ ] PatchiView avec toutes les expressions
+- [ ] KokoraView avec toutes les expressions
 
 ### V1.1
 
@@ -785,10 +785,10 @@ Widget/
 
 - **Nom de l'application** — pas encore arrêté. Critères : inventé, 2 syllabes, joyeux et léger, lien avec le projet.
 - **Polices exactes** — Crimson Pro validée pour le display, SF Pro pour l'interface. À confirmer dans Xcode avec les tailles exactes.
-- **Couleur de fond onboarding** — couleur de la première apparition de Patchi à choisir.
+- **Couleur de fond onboarding** — couleur de la première apparition de Kokora à choisir.
 - **Prix exact du premium** — environ 35€/an à valider selon benchmarks App Store français.
-- **Phrases Patchi** — minimum 20 formulations par contexte à écrire (reformulations, notifications, insights, moments de vérité).
-- **Prompt Midjourney final** — visuels Patchi créés et validés, à exporter aux bons formats pour les assets Xcode.
+- **Phrases Kokora** — minimum 20 formulations par contexte à écrire (reformulations, notifications, insights, moments de vérité).
+- **Prompt Midjourney final** — visuels Kokora créés et validés, à exporter aux bons formats pour les assets Xcode.
 
 ---
 

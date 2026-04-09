@@ -1,4 +1,4 @@
-# PRD: Patchi — Journal d'intégrité personnelle
+# PRD: Kokora — Journal d'intégrité personnelle
 
 **Author:** Teddy
 **Date:** 2026-04-01
@@ -27,7 +27,7 @@
 
 ## Executive Summary
 
-Patchi est un journal de vie intelligent pour iPhone, en français natif, qui combine journaling émotionnel quotidien, accountability personnel, et journal de décisions avec rappels à J+30 et J+90. L'app s'adresse aux francophones 25-40 ans en construction active de soi. Le marché francophone est actuellement non servi — Reflectly (13M utilisateurs) n'existe qu'en anglais. Patchi comble ce vide avec un produit supérieur pensé en français dès le premier mot, accompagné d'une mascotte attachante (Patchi, petite patate orange chibi).
+Kokora est un journal de vie intelligent pour iPhone, en français natif, qui combine journaling émotionnel quotidien, accountability personnel, et journal de décisions avec rappels à J+30 et J+90. L'app s'adresse aux francophones 25-40 ans en construction active de soi. Le marché francophone est actuellement non servi — Reflectly (13M utilisateurs) n'existe qu'en anglais. Kokora comble ce vide avec un produit supérieur pensé en français dès le premier mot, accompagné d'une mascotte attachante (Kokora, petite patate orange chibi).
 
 Modèle freemium : toutes les saisies gratuites + sync Supabase entre devices gratuite, premium ~35€/an pour analyses avancées, historique illimité, widgets, thèmes, export, verrou biométrique.
 
@@ -52,7 +52,7 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 - Reflectly n'a toujours pas de version française après des années de demandes
 - Le self-improvement est un marché en croissance constante
 - SwiftUI + SwiftData permettent un développement solo efficace
-- Les visuels de la mascotte Patchi sont déjà créés et validés
+- Les visuels de la mascotte Kokora sont déjà créés et validés
 
 ---
 
@@ -92,17 +92,17 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 **So that I can** suivre mon état émotionnel dans le temps et comprendre mes patterns.
 
 **Acceptance Criteria:**
-- [ ] Slider d'humeur de 1 à 5 avec visage Patchi animé
+- [ ] Slider d'humeur de 1 à 5 avec visage Kokora animé
 - [ ] Couleur de fond change en temps réel selon le score
 - [ ] Grille de 20 activités sélectionnables (jusqu'à 10)
 - [ ] Grille de 20 émotions sélectionnables (jusqu'à 10)
 - [ ] Titre optionnel (une ligne)
 - [ ] Note libre texte illimité ou enregistrement vocal
 - [ ] Photo optionnelle (galerie ou caméra)
-- [ ] Reformulation Patchi après validation (3 secondes puis disparaît)
+- [ ] Reformulation Kokora après validation (3 secondes puis disparaît)
 - [ ] Plusieurs check-ins par jour possibles
 
-**Dependencies:** Models SwiftData, PatchiView, Color+Mood, ReformulationService
+**Dependencies:** Models SwiftData, KokoraView, Color+Mood, ReformulationService
 
 ---
 
@@ -117,9 +117,9 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 - [ ] Notification contextuelle à J+30 avec titre de la décision
 - [ ] Notification contextuelle à J+90
 - [ ] Écran verdict : décision originale + prédiction + champ verdict (raison/partiellement/tort)
-- [ ] Moment de vérité avec Patchi présente
+- [ ] Moment de vérité avec Kokora présente
 
-**Dependencies:** Models SwiftData, NotificationService, PatchiView
+**Dependencies:** Models SwiftData, NotificationService, KokoraView
 
 ---
 
@@ -139,19 +139,19 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 
 ---
 
-### Story 4: Onboarding avec Patchi
+### Story 4: Onboarding avec Kokora
 **As a** nouvel utilisateur,
-**I want to** être accueilli par Patchi et faire ma première entrée immédiatement,
+**I want to** être accueilli par Kokora et faire ma première entrée immédiatement,
 **So that I can** voir la valeur de l'app avant toute inscription.
 
 **Acceptance Criteria:**
-- [ ] 8 étapes : Patchi apparaît → prénom → première question → reformulation → premier carré heatmap → rappels → offre essai → création compte
+- [ ] 8 étapes : Kokora apparaît → prénom → première question → reformulation → premier carré heatmap → rappels → offre essai → création compte
 - [ ] Valeur immédiate avant inscription
 - [ ] Maximum 3 minutes du début à la fin
 - [ ] Essai 7 jours sans carte bancaire
 - [ ] Sign in with Apple disponible
 
-**Dependencies:** PatchiView, OnboardingViewModel, StoreKitService
+**Dependencies:** KokoraView, OnboardingViewModel, StoreKitService
 
 ---
 
@@ -161,13 +161,13 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 **So that I can** me reconnecter avec qui j'étais et mesurer mon évolution.
 
 **Acceptance Criteria:**
-- [ ] Invitation mensuelle de Patchi
+- [ ] Invitation mensuelle de Kokora
 - [ ] Lettre scellée après envoi (non modifiable)
 - [ ] Notification spéciale 6 mois jour pour jour
 - [ ] Animation d'ouverture de lettre
 - [ ] Possibilité de répondre (la réponse devient une nouvelle lettre pour dans 6 mois)
 
-**Dependencies:** Models SwiftData, NotificationService, PatchiView
+**Dependencies:** Models SwiftData, NotificationService, KokoraView
 
 ---
 
@@ -190,16 +190,16 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 
 ### Story 7: Rituel du dimanche
 **As a** utilisateur qui veut faire le point chaque semaine,
-**I want to** être guidé par Patchi dans un bilan hebdomadaire,
+**I want to** être guidé par Kokora dans un bilan hebdomadaire,
 **So that I can** prendre du recul sur ma semaine et identifier les moments clés.
 
 **Acceptance Criteria:**
 - [ ] Session guidée 5-7 minutes chaque dimanche soir
 - [ ] Questions contextuelles basées sur les entrées de la semaine
-- [ ] Patchi guide le bilan
+- [ ] Kokora guide le bilan
 - [ ] Notification dimanche 19h00
 
-**Dependencies:** InsightService, PatchiView, NotificationService
+**Dependencies:** InsightService, KokoraView, NotificationService
 
 ---
 
@@ -280,15 +280,15 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 
 ---
 
-#### REQ-003: Composant PatchiView
-**Description:** Composant réutilisable PatchiView avec enum PatchiExpression (20+ expressions). Animation de respiration (oscillation verticale). Import des visuels depuis assets.
+#### REQ-003: Composant KokoraView
+**Description:** Composant réutilisable KokoraView avec enum KokoraExpression (20+ expressions). Animation de respiration (oscillation verticale). Import des visuels depuis assets.
 
 **Task Breakdown:**
-- Créer PatchiExpression enum avec toutes les expressions : Small (2h)
-- Créer PatchiView avec animation de respiration : Medium (3h)
-- Intégrer les assets Patchi dans xcassets : Small (1h)
+- Créer KokoraExpression enum avec toutes les expressions : Small (2h)
+- Créer KokoraView avec animation de respiration : Medium (3h)
+- Intégrer les assets Kokora dans xcassets : Small (1h)
 
-**Dependencies:** REQ-001, assets Patchi
+**Dependencies:** REQ-001, assets Kokora
 
 ---
 
@@ -310,12 +310,12 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 ---
 
 #### REQ-005: Onboarding complet 8 étapes
-**Description:** Flow de 8 écrans avec Patchi : présentation → prénom → première question → reformulation → premier carré heatmap → configuration rappels → offre d'essai → création compte.
+**Description:** Flow de 8 écrans avec Kokora : présentation → prénom → première question → reformulation → premier carré heatmap → configuration rappels → offre d'essai → création compte.
 
 **Task Breakdown:**
 - Créer OnboardingView avec navigation entre 8 étapes : Medium (4h)
 - Créer OnboardingViewModel : Medium (3h)
-- Écran 1-2 : Patchi + prénom : Small (2h)
+- Écran 1-2 : Kokora + prénom : Small (2h)
 - Écran 3-4 : Première question + reformulation : Medium (3h)
 - Écran 5 : Premier carré heatmap : Small (2h)
 - Écran 6 : Configuration rappels (double slider) : Medium (3h)
@@ -327,16 +327,16 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 ---
 
 #### REQ-006: Mood Check-in
-**Description:** Écran de check-in complet avec slider d'humeur, grilles d'activités et d'émotions, titre, note texte/voix, photo, reformulation Patchi.
+**Description:** Écran de check-in complet avec slider d'humeur, grilles d'activités et d'émotions, titre, note texte/voix, photo, reformulation Kokora.
 
 **Task Breakdown:**
-- Créer MoodSliderView avec visage Patchi animé : Medium (4h)
+- Créer MoodSliderView avec visage Kokora animé : Medium (4h)
 - Créer ActivityGridView avec 20 activités : Medium (3h)
-- Créer EmotionGridView avec 20 émotions et visages Patchi : Medium (3h)
+- Créer EmotionGridView avec 20 émotions et visages Kokora : Medium (3h)
 - Formulaire titre + note + photo : Medium (3h)
 - Intégrer SpeechService (SFSpeechRecognizer) : Medium (4h)
 - Créer CheckInViewModel : Medium (3h)
-- Écran de reformulation Patchi post-check-in : Small (2h)
+- Écran de reformulation Kokora post-check-in : Small (2h)
 
 **Dependencies:** REQ-002, REQ-003, REQ-004, REQ-008
 
@@ -358,12 +358,12 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 ---
 
 #### REQ-008: ReformulationService
-**Description:** Service 100% local qui transforme les mots-clés de l'utilisateur en phrases Patchi. Dictionary de mots-clés → phrases. Analyse tokenisée du texte.
+**Description:** Service 100% local qui transforme les mots-clés de l'utilisateur en phrases Kokora. Dictionary de mots-clés → phrases. Analyse tokenisée du texte.
 
 **Task Breakdown:**
 - Créer le dictionnaire de mots-clés (100+ mappings) : Medium (4h)
 - Implémenter l'analyse tokenisée : Medium (3h)
-- Écrire les phrases Patchi (20+ par contexte) : Medium (4h)
+- Écrire les phrases Kokora (20+ par contexte) : Medium (4h)
 
 **Dependencies:** None
 
@@ -613,7 +613,7 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 
 ```
 ┌─────────────────────────────────────────┐
-│            PatchiApp (SwiftUI)           │
+│            KokoraApp (SwiftUI)           │
 ├─────────────────────────────────────────┤
 │  AppState (@Observable)                  │
 │  AppRouter (navigation)                  │
@@ -728,11 +728,11 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 - Task 1.1: Setup XcodeGen + structure projet (2h)
 - Task 1.2: Models SwiftData + enums (6h)
 - Task 1.3: Extensions (Color+Mood, Date+Helpers, View+Transitions) (4h)
-- Task 1.4: PatchiView + expressions (6h)
+- Task 1.4: KokoraView + expressions (6h)
 - Task 1.5: AppState + AppRouter + TabView principal (5h)
 - Task 1.6: Système de couleurs dynamiques (4h)
 
-**Checkpoint:** App se lance avec 5 tabs vides et Patchi visible.
+**Checkpoint:** App se lance avec 5 tabs vides et Kokora visible.
 
 ---
 
@@ -815,7 +815,7 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 ### Open Questions
 
 #### Q1: Nom définitif de l'app
-- **Current Status:** "Patchi" (temporaire)
+- **Current Status:** "Kokora" (temporaire)
 - **Deadline:** Avant soumission App Store
 - **Impact:** Low (changeable dans le code)
 
@@ -824,15 +824,15 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 - **Options:** 29.99€, 34.99€, 39.99€
 - **Deadline:** Avant configuration StoreKit
 
-#### Q3: Assets Patchi — formats d'export
+#### Q3: Assets Kokora — formats d'export
 - **Current Status:** Visuels créés, à exporter pour Xcode
-- **Deadline:** Phase 1 (bloquant pour PatchiView)
+- **Deadline:** Phase 1 (bloquant pour KokoraView)
 
 ### Risks & Mitigation
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| Assets Patchi pas prêts à temps | Medium | High | Utiliser des placeholder SVG, intégrer les vrais assets plus tard |
+| Assets Kokora pas prêts à temps | Medium | High | Utiliser des placeholder SVG, intégrer les vrais assets plus tard |
 | Sync SwiftData ↔ Supabase conflicts | High | Medium | Offline-first avec `updated_at` merge par timestamp. Une seule source de vérité = Supabase. Au launch, pull tout au refresh. |
 | Coûts Supabase au-delà du free tier | Low | Medium | Free tier = 50k MAU + 500MB DB. Monitorer usage. Passer au Pro (25 €/mois) si besoin. |
 | Supabase down / incident | Low | High | Cache local SwiftData permet d'utiliser l'app en read-only pendant une panne. |
@@ -847,14 +847,14 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 ### Checkpoint 1: Foundation (fin Phase 1)
 - [ ] App compile et se lance
 - [ ] 5 tabs visibles avec navigation
-- [ ] PatchiView affiche les expressions
+- [ ] KokoraView affiche les expressions
 - [ ] Couleurs dynamiques fonctionnent
 
 ### Checkpoint 2: Core Data Entry (fin Phase 2)
 - [ ] Check-in mood complet fonctionnel
 - [ ] Accountability tracker fonctionnel
 - [ ] Heatmap 90 jours s'affiche
-- [ ] Reformulation Patchi apparaît
+- [ ] Reformulation Kokora apparaît
 
 ### Checkpoint 3: All Inputs (fin Phase 3)
 - [ ] Décisions avec rappels J+30/J+90

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Patchi — Optimisation des policies RLS
+-- Kokora — Optimisation des policies RLS
 -- Migration: 004_optimize_rls_policies
 -- ============================================================================
 -- Le linter perf Supabase signale que `auth.uid()` dans les policies se

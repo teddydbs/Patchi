@@ -1,10 +1,10 @@
-# Design System Patchi — MASTER
+# Design System Kokora — MASTER
 
-> Source of truth pour tout l'UI de Patchi. Chaque écran doit respecter ces règles sauf override dans `pages/`.
+> Source of truth pour tout l'UI de Kokora. Chaque écran doit respecter ces règles sauf override dans `pages/`.
 
 ## Style : Claymorphism Mobile Organique
 
-Style mascotte-led, playful, journaling émotionnel. Inspiré claymorphism mais adapté avec l'identité orange Patchi et les couleurs vives de mood.
+Style mascotte-led, playful, journaling émotionnel. Inspiré claymorphism mais adapté avec l'identité orange Kokora et les couleurs vives de mood.
 
 ### Principes
 
@@ -14,7 +14,7 @@ Style mascotte-led, playful, journaling émotionnel. Inspiré claymorphism mais 
 4. **Profondeur clay** — ombres multi-layer (inner + outer), pas de flat shadow
 5. **Spring physics** — animations naturelles, interruptibles, 150-300ms
 6. **Haptic partout** — feedback tactile sur chaque action clé
-7. **Patchi omniprésent** — la mascotte guide, réagit, accompagne
+7. **Kokora omniprésent** — la mascotte guide, réagit, accompagne
 
 ---
 
@@ -24,7 +24,7 @@ Style mascotte-led, playful, journaling émotionnel. Inspiré claymorphism mais 
 
 | Token | Light | Dark | Usage |
 |-------|-------|------|-------|
-| `patchiOrange` | `#FF9933` | `#FF9933` | CTA principal, mascotte, accents |
+| `kokoraOrange` | `#FF9933` | `#FF9933` | CTA principal, mascotte, accents |
 | `accentPurple` | `#7C3AED` | `#A78BFA` | Insights, stats, premium |
 | `accentAmber` | `#D97706` | `#F59E0B` | Streaks, badges, warnings |
 | `success` | `#059669` | `#10B981` | Confirmations, positif |
@@ -53,7 +53,7 @@ Style mascotte-led, playful, journaling émotionnel. Inspiré claymorphism mais 
 
 | Rôle | Police | Poids | Usage |
 |------|--------|-------|-------|
-| Émotionnel | **Crimson Pro Italic** | 400-600 | Titres, questions Patchi, citations, reformulations |
+| Émotionnel | **Crimson Pro Italic** | 400-600 | Titres, questions Kokora, citations, reformulations |
 | Fonctionnel | **SF Pro** (système) | 400-700 | Labels, données, interface, boutons |
 
 ### Échelle
@@ -121,7 +121,7 @@ Style mascotte-led, playful, journaling émotionnel. Inspiré claymorphism mais 
 ### Bouton principal (Pill)
 - Hauteur : 56pt
 - borderRadius : 20pt
-- Gradient : patchiOrange → patchiOrange.opacity(0.85)
+- Gradient : kokoraOrange → kokoraOrange.opacity(0.85)
 - Texte : SF Pro Semibold 17pt, couleur sur fond orange
 - Press : scale 0.92, spring, haptic `.light`
 - Ombre clay standard
@@ -137,7 +137,7 @@ Style mascotte-led, playful, journaling émotionnel. Inspiré claymorphism mais 
 - borderRadius : 16pt
 - Hauteur : 36pt
 - Padding horizontal : 16pt
-- Active : fond patchiOrange, texte blanc
+- Active : fond kokoraOrange, texte blanc
 - Inactive : fond cardBg, texte textSecondary
 
 ### Blob Background
@@ -162,4 +162,4 @@ Style mascotte-led, playful, journaling émotionnel. Inspiré claymorphism mais 
 - [ ] SF Symbols pour les icônes (pas d'emoji structurel)
 - [ ] Animations spring, interruptibles
 - [ ] Safe areas respectées
-- [ ] État vide avec Patchi qui parle
+- [ ] État vide avec Kokora qui parle

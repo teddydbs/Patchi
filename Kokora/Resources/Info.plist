@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>fr</string>
+    <key>CFBundleDisplayName</key>
+    <string>Kokora</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>$(PRODUCT_NAME)</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(MARKETING_VERSION)</string>
+    <key>CFBundleVersion</key>
+    <string>$(CURRENT_PROJECT_VERSION)</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key>
+        <false/>
+    </dict>
+    <key>UILaunchScreen</key>
+    <dict/>
+    <key>UIRequiredDeviceCapabilities</key>
+    <array>
+        <string>arm64</string>
+    </array>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+    </array>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Kokora utilise le micro pour la saisie vocale.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Kokora transcrit ta voix en texte.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Kokora utilise la caméra pour ajouter des photos à tes entrées.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Kokora accède à tes photos pour les ajouter à tes entrées.</string>
+    <key>NSFaceIDUsageDescription</key>
+    <string>Kokora utilise Face ID pour protéger ton journal.</string>
+    <key>UIAppFonts</key>
+    <array>
+        <string>CrimsonPro-Regular.ttf</string>
+        <string>CrimsonPro-Italic.ttf</string>
+        <string>CrimsonPro-Medium.ttf</string>
+        <string>CrimsonPro-MediumItalic.ttf</string>
+        <string>CrimsonPro-SemiBold.ttf</string>
+        <string>CrimsonPro-SemiBoldItalic.ttf</string>
+        <string>ClashDisplay-Regular.otf</string>
+        <string>ClashDisplay-Medium.otf</string>
+        <string>ClashDisplay-Semibold.otf</string>
+        <string>ClashDisplay-Bold.otf</string>
+    </array>
+</dict>
+</plist>

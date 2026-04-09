@@ -1,4 +1,4 @@
-# Patchi — Suivi d'avancement
+# Kokora — Suivi d'avancement
 
 > Dernière mise à jour : 1er avril 2026 — **56 fichiers Swift, 7 483 lignes de code, BUILD SUCCEEDED**
 
@@ -8,7 +8,7 @@
 
 App iOS native SwiftUI — journal de vie intelligent en français natif.
 Combine journaling émotionnel, accountability personnel, et journal de décisions avec rappels J+30/J+90.
-Mascotte Patchi (petite patate orange chibi). Freemium ~35€/an.
+Mascotte Kokora (petite patate orange chibi). Freemium ~35€/an.
 
 **Stack :** SwiftUI · SwiftData · iOS 17+ · MVVM · XcodeGen · StoreKit 2 · Pas d'IA
 **Simulateur :** iPhone 17, iOS 26.2
@@ -19,31 +19,31 @@ Mascotte Patchi (petite patate orange chibi). Freemium ~35€/an.
 
 ### TM #1 — Setup XcodeGen + structure projet ✅
 - `project.yml` XcodeGen configuré (iOS 17+)
-- `PatchiApp.swift` avec ModelContainer SwiftData (5 models)
+- `KokoraApp.swift` avec ModelContainer SwiftData (5 models)
 - `AppState` (@Observable) + `RootView` + `MainTabView` (5 tabs)
 - 5 @Model : User, CheckIn, AccountabilityEntry, Decision, FutureLetter
 - 6 Enums : Emotion (20), Activity (20), HeatmapColor, Verdict, DecisionStatus, AppTheme
 - 3 Extensions : Color+Mood (7 couleurs vives), Date+Helpers, View+Transitions
 - Info.plist avec permissions (micro, caméra, photo, Face ID, speech)
-- Assets.xcassets avec AccentColor orange Patchi
+- Assets.xcassets avec AccentColor orange Kokora
 - .gitignore configuré pour Xcode + Swift
 - **Le projet compile** ✅
 
-### TM #7 — PatchiView et système d'expressions ✅
-- `PatchiExpression` : 21 expressions (happy → determined)
+### TM #7 — KokoraView et système d'expressions ✅
+- `KokoraExpression` : 21 expressions (happy → determined)
   - Mapping automatique depuis moodScore (1-5)
   - Mapping depuis contexte (onboarding, reformulation, verdict, etc.)
   - Couleurs d'accent par expression
   - SF Symbols de fallback
-- `PatchiView` : composant réutilisable
+- `KokoraView` : composant réutilisable
   - Animation de respiration (oscillation verticale 1.8s)
   - 4 tailles : small (44pt), medium (80pt), large (140pt), hero (200pt)
   - Placeholder vectoriel SwiftUI (corps patate orange, yeux adaptatifs, joues rosées, bouche selon expression)
-  - Prêt pour les vrais assets → nommer `patchi_happy`, `patchi_sad`, etc. dans xcassets
-- `PatchiSpeechBubble` : bulle de dialogue
+  - Prêt pour les vrais assets → nommer `kokora_happy`, `kokora_sad`, etc. dans xcassets
+- `KokoraSpeechBubble` : bulle de dialogue
   - Animation texte mot par mot (35ms/caractère)
   - 3 styles : standard (blanc), emotional (orange léger), subtle (gris)
-  - Composant combo `PatchiWithBubble`
+  - Composant combo `KokoraWithBubble`
 - **Le projet compile** ✅
 
 ### Tâches faites en avance (incluses dans TM #1)
@@ -74,9 +74,9 @@ Mascotte Patchi (petite patate orange chibi). Freemium ~35€/an.
 ## Structure du projet
 
 ```
-Patchi/
+Kokora/
 ├── App/
-│   ├── PatchiApp.swift          ← Point d'entrée, ModelContainer
+│   ├── KokoraApp.swift          ← Point d'entrée, ModelContainer
 │   ├── AppState.swift           ← État global @Observable
 │   ├── RootView.swift           ← Onboarding ou MainTabView
 │   └── MainTabView.swift        ← 5 tabs + bouton central
@@ -99,14 +99,14 @@ Patchi/
 │   ├── Stats/StatsView.swift               (placeholder)
 │   └── Journal/JournalView.swift           (placeholder)
 ├── Components/
-│   └── Patchi/
-│       ├── PatchiExpression.swift   ← 21 expressions + contextes
-│       ├── PatchiView.swift         ← Composant avec animation respiration
-│       └── PatchiSpeechBubble.swift ← Bulle mot par mot + PatchiWithBubble
+│   └── Kokora/
+│       ├── KokoraExpression.swift   ← 21 expressions + contextes
+│       ├── KokoraView.swift         ← Composant avec animation respiration
+│       └── KokoraSpeechBubble.swift ← Bulle mot par mot + KokoraWithBubble
 ├── Extensions/
 │   ├── Color+Mood.swift         ← 7 couleurs vives d'humeur
 │   ├── Date+Helpers.swift       ← Helpers date en français
-│   └── View+Transitions.swift   ← Animations Patchi 400-600ms
+│   └── View+Transitions.swift   ← Animations Kokora 400-600ms
 └── Resources/
     ├── Info.plist
     ├── Assets.xcassets/
@@ -128,12 +128,12 @@ Patchi/
 
 ---
 
-## Assets Patchi — Comment intégrer les vrais visuels
+## Assets Kokora — Comment intégrer les vrais visuels
 
 1. Exporter les images Midjourney en PNG transparent
-2. Les nommer selon le pattern : `patchi_happy.png`, `patchi_sad.png`, `patchi_neutral.png`, etc.
-3. Les glisser dans `Patchi/Resources/Assets.xcassets/` (créer un Image Set par expression)
-4. Le `PatchiView` détectera automatiquement les assets et arrêtera d'utiliser le placeholder vectoriel
+2. Les nommer selon le pattern : `kokora_happy.png`, `kokora_sad.png`, `kokora_neutral.png`, etc.
+3. Les glisser dans `Kokora/Resources/Assets.xcassets/` (créer un Image Set par expression)
+4. Le `KokoraView` détectera automatiquement les assets et arrêtera d'utiliser le placeholder vectoriel
 
 Expressions à couvrir : happy, excited, proud, grateful, celebrating, calm, neutral, thinking, curious, waving, sleeping, sad, tired, worried, stressed, angry, surprised, nostalgic, comforting, determined
 
@@ -142,8 +142,8 @@ Expressions à couvrir : happy, excited, proud, grateful, celebrating, calm, neu
 ## Points d'attention (analyse Rodin)
 
 - **Dispersion :** 3 dimensions (journaling + accountability + décisions) = 3 postures psychologiques. Risque que l'app ne sache pas ce qu'elle est.
-- **Reformulation sans IA :** Templates statiques → au bout de 2 semaines l'utilisateur peut sentir que Patchi ne le comprend pas vraiment. Prévoir beaucoup de variantes.
+- **Reformulation sans IA :** Templates statiques → au bout de 2 semaines l'utilisateur peut sentir que Kokora ne le comprend pas vraiment. Prévoir beaucoup de variantes.
 - **Vrai concurrent :** Notes d'Apple et le carnet papier, pas Reflectly.
 - **Killer feature sous-estimée :** Le rituel du dimanche (RDV hebdo structuré > journal quotidien).
 - **Rétention :** Le seul problème qui compte. 85-90% de churn avant 2 semaines en journaling.
-- **Question clé :** "Quelle est la seule chose que Patchi fait mieux que tout le monde ?"
+- **Question clé :** "Quelle est la seule chose que Kokora fait mieux que tout le monde ?"
