@@ -1,4 +1,3 @@
-import AuthenticationServices
 import Foundation
 import Observation
 import OSLog
@@ -143,34 +142,24 @@ final class AuthService {
     ///     (Supabase vérifie que le hash correspond à celui dans l'id_token).
     /// - Returns: le prénom extrait du credential (si fourni par Apple).
     @discardableResult
-    func signInWithApple(
-        credential: ASAuthorizationAppleIDCredential,
-        rawNonce: String
-    ) async throws -> String? {
-        guard let identityTokenData = credential.identityToken,
-              let idToken = String(data: identityTokenData, encoding: .utf8) else {
-            throw AuthError.missingIdentityToken
-        }
-
+    func signInWithApple(_ credentials: AppleCredentials) async throws -> String? {
         try await authenticating {
             _ = try await client.auth.signInWithIdToken(
                 credentials: OpenIDConnectCredentials(
                     provider: .apple,
-                    idToken: idToken,
-                    nonce: rawNonce
+                    idToken: credentials.idToken,
+                    nonce: credentials.rawNonce
                 )
             )
         }
 
-        let givenName = credential.fullName?.givenName?.trimmingCharacters(in: .whitespaces)
-
         // Si Apple a fourni un prénom (1er sign-in), on le persiste dans le profile.
         // updateProfile met à jour `self.profile` — pas besoin de le faire ici.
-        if let givenName, !givenName.isEmpty, let userId = currentUserId {
+        if let givenName = credentials.givenName, !givenName.isEmpty, let userId = currentUserId {
             try await updateProfile(userId: userId, firstName: givenName)
         }
 
-        return givenName?.isEmpty == false ? givenName : nil
+        return credentials.givenName
     }
 
     // MARK: - Email + password
@@ -386,6 +375,18 @@ struct AuthSession: Equatable {
         self.userId = session.user.id
         self.email = session.user.email
     }
+}
+
+/// DTO léger pour transporter les credentials Apple de la vue vers `AuthService`.
+/// Découple le service de `AuthenticationServices` (testabilité, mocking).
+///
+/// La vue extrait les champs du `ASAuthorizationAppleIDCredential` via l'init
+/// `init(credential:rawNonce:)` et passe ce struct au service.
+struct AppleCredentials: Equatable {
+    let idToken: String
+    let rawNonce: String
+    /// Prénom fourni par Apple uniquement au 1er sign-in, `nil` ensuite.
+    let givenName: String?
 }
 
 /// État public du profil stocké dans `public.profiles`.

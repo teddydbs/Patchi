@@ -167,24 +167,24 @@ struct OnboardingView: View {
     private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
         switch result {
         case .success(let authorization):
-            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
-                  let rawNonce = currentAppleNonce else {
+            guard
+                let appleCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
+                let rawNonce = currentAppleNonce,
+                let credentials = AppleCredentials(credential: appleCredential, rawNonce: rawNonce)
+            else {
                 Haptics.warning()
-                authErrorMessage = "Le nonce est manquant, impossible de vérifier l'authentification Apple."
+                authErrorMessage = "Impossible de vérifier l'authentification Apple."
                 showAuthErrorAlert = true
                 return
             }
 
-            if let emailValue = credential.email, !emailValue.isEmpty {
+            if let emailValue = appleCredential.email, !emailValue.isEmpty {
                 viewModel.email = emailValue
             }
 
             Task {
                 do {
-                    let givenName = try await AuthService.shared.signInWithApple(
-                        credential: credential,
-                        rawNonce: rawNonce
-                    )
+                    let givenName = try await AuthService.shared.signInWithApple(credentials)
 
                     // Nettoyage du nonce (usage unique)
                     await MainActor.run { currentAppleNonce = nil }
