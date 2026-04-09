@@ -1,8 +1,10 @@
 import Foundation
+import GoogleSignIn
 import Observation
 import OSLog
 import Supabase
 import SwiftData
+import UIKit
 
 private let logger = Logger(subsystem: "com.kokora.app", category: "Auth")
 
@@ -162,6 +164,66 @@ final class AuthService {
         }
 
         return credentials.givenName
+    }
+
+    // MARK: - Sign in with Google
+
+    /// Authentifie l'utilisateur via le SDK natif `GoogleSignIn`.
+    ///
+    /// Flow :
+    /// 1. Présente le sheet natif Google (géré par le SDK)
+    /// 2. Récupère l'`idToken` du user depuis `GIDSignInResult`
+    /// 3. L'envoie à Supabase via `signInWithIdToken(provider: .google)`
+    /// 4. Si Google a fourni un prénom, le persiste dans `profiles.first_name`
+    ///
+    /// ⚠️ Requiert que "Skip nonce checks" soit ON côté Supabase Google provider,
+    /// car le SDK GoogleSignIn iOS n'expose pas le nonce au token endpoint.
+    ///
+    /// - Returns: le prénom fourni par Google si présent, `nil` sinon.
+    @discardableResult
+    func signInWithGoogle() async throws -> String? {
+        guard let presentingVC = Self.topViewController() else {
+            throw AuthError.noPresentingViewController
+        }
+
+        return try await authenticating {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC)
+
+            guard let idToken = result.user.idToken?.tokenString else {
+                throw AuthError.missingIdentityToken
+            }
+
+            _ = try await client.auth.signInWithIdToken(
+                credentials: OpenIDConnectCredentials(
+                    provider: .google,
+                    idToken: idToken
+                )
+            )
+
+            let givenName = result.user.profile?.givenName?.trimmingCharacters(in: .whitespaces)
+
+            if let givenName, !givenName.isEmpty, let userId = currentUserId {
+                try await updateProfile(userId: userId, firstName: givenName)
+            }
+
+            return (givenName?.isEmpty == false) ? givenName : nil
+        }
+    }
+
+    /// Remonte jusqu'au view controller le plus en avant pour servir de
+    /// context de présentation au sheet GoogleSignIn.
+    private static func topViewController() -> UIViewController? {
+        guard let window = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow })
+        else { return nil }
+
+        var topVC = window.rootViewController
+        while let presented = topVC?.presentedViewController {
+            topVC = presented
+        }
+        return topVC
     }
 
     // MARK: - Email + password
@@ -349,11 +411,13 @@ final class AuthService {
     enum AuthError: LocalizedError {
         case missingIdentityToken
         case noSession
+        case noPresentingViewController
 
         var errorDescription: String? {
             switch self {
-            case .missingIdentityToken: return "Impossible de récupérer le token Apple."
+            case .missingIdentityToken: return "Impossible de récupérer le token d'authentification."
             case .noSession: return "Aucune session active."
+            case .noPresentingViewController: return "Impossible d'ouvrir la fenêtre de connexion."
             }
         }
     }

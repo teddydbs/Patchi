@@ -209,7 +209,7 @@ struct CheckInView: View {
             Spacer()
 
             EmotionBubble(
-                emotion: Emotion.forMoodScore(viewModel.moodScore),
+                emotion: viewModel.selectedEmotions.first ?? Emotion.forMoodScore(viewModel.moodScore),
                 text: viewModel.reformulationText,
                 size: .large,
                 style: .emotional

@@ -37,19 +37,6 @@ enum JournalEntryType: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - Mood Image Helper
-
-private func moodImageName(score: Int) -> String {
-    switch score {
-    case 5: return "emotion_heureux"
-    case 4: return "emotion_serein"
-    case 3: return "emotion_nostalgique"
-    case 2: return "emotion_triste"
-    case 1: return "emotion_seul"
-    default: return "emotion_serein"
-    }
-}
-
 // MARK: - Check-in Card
 
 struct CheckInCardView: View {
@@ -58,7 +45,7 @@ struct CheckInCardView: View {
     var body: some View {
         HStack(spacing: 14) {
             // Mood Kokora image
-            Image(moodImageName(score: checkIn.moodScore))
+            Image(MoodImage.name(forScore: checkIn.moodScore))
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 44, height: 44)

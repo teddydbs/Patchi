@@ -13,10 +13,10 @@ struct NewDecisionView: View {
                 ScrollView {
                     VStack(spacing: 24) {
                         EmotionBubble(
-                emotion: .confus,
+                            emotion: .surpris,
                             text: "Quelle décision tu as prise ?",
                             size: .medium,
-                            style: .subtle
+                            style: .standard
                         )
 
                         FormFieldDS(title: "Titre de la décision") {
@@ -98,7 +98,7 @@ struct NewDecisionView: View {
                         HStack(spacing: 8) {
                             Image(systemName: "bell.fill")
                                 .foregroundStyle(Color.mdOrange)
-                            Text("Kokora te rappellera dans 30 et 90 jours.")
+                            Text("Tu recevras un rappel dans 30 et 90 jours.")
                                 .font(.system(size: 13))
                                 .foregroundStyle(Color.mdTextGray)
                         }
@@ -134,8 +134,8 @@ struct NewDecisionView: View {
 
             VStack(spacing: 24) {
                 EmotionBubble(
-                emotion: .fiere,
-                    text: "C'est noté. On se revoit dans 30 jours.",
+                    emotion: .fiere,
+                    text: "C'est noté. Rendez-vous dans 30 jours.",
                     size: .large
                 )
 

@@ -117,8 +117,8 @@ struct WriteLetterView: View {
             }
 
             EmotionBubble(
-                emotion: .heureux,
-                text: "La lettre est scellée. On se revoit dans 6 mois.",
+                emotion: .calme,
+                text: "La lettre est scellée. Rendez-vous dans 6 mois.",
                 size: .large,
                 style: .emotional
             )

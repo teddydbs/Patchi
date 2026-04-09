@@ -39,7 +39,7 @@ struct VerdictView: View {
             Spacer()
 
             EmotionBubble(
-                emotion: .fiere,
+                emotion: .surpris,
                 text: verdictType == .j30
                     ? "30 jours. Tu avais vu juste ?"
                     : "90 jours. Le moment de vérité.",
@@ -69,11 +69,6 @@ struct VerdictView: View {
     private var verdictForm: some View {
         ScrollView {
             VStack(spacing: 24) {
-                Image("emotion_confus")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 80, height: 80)
-
                 // Decision originale
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Ta décision")

@@ -1,3 +1,4 @@
+import GoogleSignIn
 import SwiftUI
 import SwiftData
 
@@ -32,6 +33,10 @@ struct KokoraApp: App {
                 .environment(appState)
                 .onAppear {
                     setupStoreKit()
+                }
+                .onOpenURL { url in
+                    // Redirect du flow GoogleSignIn (scheme reversed client ID)
+                    GIDSignIn.sharedInstance.handle(url)
                 }
         }
         .modelContainer(modelContainer)

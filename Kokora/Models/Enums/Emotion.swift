@@ -71,14 +71,15 @@ enum Emotion: String, Codable, CaseIterable, Identifiable {
         "emotion_\(rawValue)"
     }
 
-    /// Émotion affichée pour un score d'humeur 1-5
+    /// Émotion affichée pour un score d'humeur 1-5.
+    /// Mapping aligné avec `MoodImage.name(forScore:)` — source de vérité unique.
     static func forMoodScore(_ score: Int) -> Emotion {
         switch score {
-        case 1: .triste
-        case 2: .seul
-        case 3: .serein
-        case 4: .heureux
-        case 5: .chanceux
+        case 5: .heureux
+        case 4: .serein
+        case 3: .nostalgique
+        case 2: .triste
+        case 1: .seul
         default: .serein
         }
     }

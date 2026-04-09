@@ -61,9 +61,9 @@ struct EmotionBubble: View {
 
 #Preview {
     VStack(spacing: 40) {
-        EmotionBubble(emotion: .heureux, text: "Bienvenue ! Ton journal t'attend.", size: .medium, style: .emotional)
-        EmotionBubble(emotion: .confus, text: "30 jours. Tu avais vu juste ?", size: .large, style: .emotional)
-        EmotionBubble(emotion: .empathique, text: "C'est noté.", size: .small, style: .standard)
+        EmotionBubble(emotion: .heureux, text: "Bienvenue. Ton journal t'attend.", size: .medium, style: .emotional)
+        EmotionBubble(emotion: .surpris, text: "30 jours. Tu avais vu juste ?", size: .large, style: .emotional)
+        EmotionBubble(emotion: .empathique, text: "Merci de l'avoir noté.", size: .small, style: .standard)
     }
     .padding()
 }

@@ -8,11 +8,10 @@ final class OnboardingViewModel {
         case welcome          // 1. Pas sûr de ton humeur ?
         case login            // 2. On fait connaissance ? (Apple / Google / Email)
         case firstQuestion    // 3. Première question
-        case reformulation    // 4. Reformulation Kokora
+        case reformulation    // 4. Reformulation
         case firstSquare      // 5. Premier carré heatmap
         case reminders        // 6. Config rappels
         case trial            // 7. Offre d'essai
-        case account          // 8. Création compte
     }
 
     var currentStep: Step = .welcome
@@ -39,7 +38,6 @@ final class OnboardingViewModel {
         case .firstSquare: true
         case .reminders: true
         case .trial: true
-        case .account: true
         }
     }
 

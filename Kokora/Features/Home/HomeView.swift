@@ -31,11 +31,6 @@ struct HomeView: View {
                         checkInCTA
                             .padding(.top, 24)
 
-                        if checkIns.isEmpty && accountabilityEntries.isEmpty {
-                            welcomeCard
-                                .padding(.top, 24)
-                        }
-
                         challengeSection
                             .padding(.top, 28)
 
@@ -99,15 +94,15 @@ struct HomeView: View {
                 .accessibilityLabel("Réglages")
             }
 
-            // Blob characters floating
+            // Emotion illustrations floating header
             ZStack {
-                // Companion blobs — real Kokora illustrations
+                // Companion emotions (décoratifs)
                 companionBlob(imageName: "emotion_chanceux", size: 44, xOffset: -120, yOffset: -10, delay: 1.0)
                 companionBlob(imageName: "emotion_serein", size: 40, xOffset: 110, yOffset: -20, delay: 2.0)
                 companionBlob(imageName: "emotion_nostalgique", size: 34, xOffset: -55, yOffset: 40, delay: 0.5)
                 companionBlob(imageName: "emotion_surpris", size: 32, xOffset: 70, yOffset: 35, delay: 2.5)
 
-                // Kokora main blob
+                // Émotion principale (centrale)
                 Image("emotion_heureux")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -175,9 +170,9 @@ struct HomeView: View {
                             .fill(mood != nil ? Color.moodVivid(mood!) : Color.mdBgSubtle)
                             .frame(width: 42, height: 42)
 
-                        // Kokora illustration based on mood
+                        // Illustration d'émotion selon l'humeur
                         if let mood {
-                            Image(moodImageName(score: mood))
+                            Image(Emotion.forMoodScore(mood).imageName)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 30, height: 30)
@@ -201,17 +196,6 @@ struct HomeView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-        }
-    }
-
-    private func moodImageName(score: Int) -> String {
-        switch score {
-        case 5: return "emotion_heureux"
-        case 4: return "emotion_serein"
-        case 3: return "emotion_nostalgique"
-        case 2: return "emotion_triste"
-        case 1: return "emotion_seul"
-        default: return "emotion_serein"
         }
     }
 
@@ -266,35 +250,6 @@ struct HomeView: View {
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         }
         .buttonStyle(SpringPressStyle())
-    }
-
-    // MARK: - Welcome Card
-
-    private var welcomeCard: some View {
-        VStack(spacing: 16) {
-            EmotionBubble(
-                emotion: .heureux,
-                text: {
-                    if let name = viewModel.currentUserName(from: users) {
-                        return "Bienvenue \(name). Ton journal t'attend."
-                    }
-                    return "Bienvenue. Ton journal t'attend."
-                }(),
-                size: .medium,
-                style: .emotional
-            )
-
-            Text("Fais ton premier check-in pour commencer.")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(Color.mdTextGray)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color.mdOrangeBg)
-        )
     }
 
     // MARK: - Challenge Section
@@ -496,7 +451,7 @@ struct HomeView: View {
 
                 HStack(spacing: 16) {
                     // Mood Kokora illustration
-                    Image(moodImageName(score: checkIn.moodScore))
+                    Image(MoodImage.name(forScore: checkIn.moodScore))
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 56, height: 56)

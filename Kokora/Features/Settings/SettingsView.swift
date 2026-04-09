@@ -367,7 +367,7 @@ struct NotificationSettingsView: View {
 struct LegalView: View {
     var body: some View {
         ScrollView {
-            Text("Mentions légales\n\nKokora est une application de journaling personnel. Toutes les données sont stockées localement sur votre appareil via SwiftData.\n\nAucune donnée personnelle n'est collectée ni transmise à des serveurs tiers.\n\nLa synchronisation iCloud (premium) utilise CloudKit et est chiffrée de bout en bout par Apple.")
+            Text("Mentions légales\n\nKokora est une application de journaling personnel développée pour iOS.\n\nVos données (check-ins, décisions, lettres, accountability) sont hébergées sur Supabase, dans des datacenters situés dans l'Union Européenne (Frankfurt, Allemagne), conformément au RGPD.\n\nUne copie locale est également conservée sur votre appareil via SwiftData pour permettre l'utilisation hors ligne.\n\nVous pouvez supprimer l'intégralité de vos données à tout moment depuis les réglages de l'application (action irréversible, cascade côté serveur).")
                 .padding()
         }
         .navigationTitle("Mentions légales")
@@ -377,7 +377,7 @@ struct LegalView: View {
 struct PrivacyView: View {
     var body: some View {
         ScrollView {
-            Text("Politique de confidentialité\n\nKokora respecte votre vie privée.\n\n• Vos données restent sur votre appareil\n• Aucun tracking, aucune publicité\n• Pas d'IA externe, pas d'API tierce\n• La synchronisation iCloud (premium) est chiffrée par Apple\n• Vous pouvez supprimer toutes vos données à tout moment\n\nContact : support@kokora.app")
+            Text("Politique de confidentialité\n\nKokora respecte ta vie privée.\n\n• Authentification via Sign in with Apple, Google ou email/mot de passe, gérée par Supabase Auth\n• Données hébergées en UE (Frankfurt) conformément au RGPD\n• Sécurité enforcée côté serveur via Row Level Security Postgres — chaque utilisateur ne voit que ses propres données\n• Aucun tracking, aucune publicité, aucun partage avec des tiers\n• Pas d'IA, pas de modèle génératif, pas d'analyse de tes textes\n• Tu peux supprimer toutes tes données à tout moment depuis les réglages\n\nContact : support@kokora.app")
                 .padding()
         }
         .navigationTitle("Confidentialité")

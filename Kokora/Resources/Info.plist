@@ -47,6 +47,17 @@
     <string>Kokora accède à tes photos pour les ajouter à tes entrées.</string>
     <key>NSFaceIDUsageDescription</key>
     <string>Kokora utilise Face ID pour protéger ton journal.</string>
+    <key>GIDClientID</key>
+    <string>468685283265-3qi41lusosf2k9n5norhc83uqg2jnjkh.apps.googleusercontent.com</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>com.googleusercontent.apps.468685283265-3qi41lusosf2k9n5norhc83uqg2jnjkh</string>
+            </array>
+        </dict>
+    </array>
     <key>UIAppFonts</key>
     <array>
         <string>CrimsonPro-Regular.ttf</string>

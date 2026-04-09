@@ -12,7 +12,6 @@ struct OnboardingView: View {
 
     // Sheets / alerts pilotés depuis le loginStep
     @State private var showEmailSheet: Bool = false
-    @State private var showGoogleAlert: Bool = false
     @State private var showFirstNameFallback: Bool = false
     @State private var showAuthErrorAlert: Bool = false
     @State private var authErrorMessage: String = ""
@@ -45,7 +44,6 @@ struct OnboardingView: View {
                         case .firstSquare: firstSquareStep
                         case .reminders: remindersStep
                         case .trial: trialStep
-                        case .account: accountStep
                         }
                     }
                     .id(viewModel.currentStep)
@@ -138,11 +136,45 @@ struct OnboardingView: View {
                 viewModel.complete(context: modelContext, appState: appState)
             }
         }
-        // Google sign-in stub alert (SDK pas encore intégré)
-        .alert("Connexion Google", isPresented: $showGoogleAlert) {
-            Button("J'ai compris", role: .cancel) { }
-        } message: {
-            Text("L'authentification Google nécessite le SDK GoogleSignIn-iOS et un client OAuth 2.0 configuré sur Google Cloud. Utilise Apple ou Email pour l'instant.")
+    }
+
+    /// Déclenche le flow Sign in with Google via `AuthService.signInWithGoogle()`.
+    /// Même pattern de reprise que Apple : récup prénom → fallback si absent →
+    /// bypass onboarding si profil existant.
+    private func handleGoogleSignIn() {
+        Task {
+            do {
+                let givenName = try await AuthService.shared.signInWithGoogle()
+
+                await MainActor.run {
+                    if let name = givenName, !name.isEmpty {
+                        viewModel.firstName = name
+                        Haptics.success()
+                        advanceAfterLogin()
+                    } else {
+                        let existingName = authService.currentFirstName
+                        if !existingName.isEmpty {
+                            viewModel.firstName = existingName
+                            Haptics.success()
+                            advanceAfterLogin()
+                        } else {
+                            showFirstNameFallback = true
+                        }
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    // Ne pas afficher d'erreur si l'user a juste fermé le sheet
+                    let nsError = error as NSError
+                    let isCancellation = nsError.domain == "com.google.GIDSignIn" && nsError.code == -5
+                    if !isCancellation {
+                        print("[Login] Google sign-in failed: \(error.localizedDescription)")
+                        Haptics.warning()
+                        authErrorMessage = AuthService.friendlyMessage(for: error)
+                        showAuthErrorAlert = true
+                    }
+                }
+            }
         }
     }
 
@@ -293,7 +325,6 @@ struct OnboardingView: View {
         case .firstSquare: return Color.mdBg
         case .reminders: return Color.mdBg
         case .trial: return Color.mdBg
-        case .account: return Color.mdBg
         }
     }
 
@@ -445,7 +476,7 @@ struct OnboardingView: View {
     // Design de référence: Figma node 30:235 (canvas 393x852)
     // 5 illustrations flottantes + 3 boutons d'auth (Apple / Google / Email)
     // Le prénom est récupéré via l'auth provider quand possible, sinon
-    // demandé dans un fallback (TODO : implémenter l'auth réelle).
+    // demandé via FirstNameFallbackView.
 
     private var loginStep: some View {
         GeometryReader { geo in
@@ -562,10 +593,10 @@ struct OnboardingView: View {
 
                         // Google + Email row (54pt)
                         HStack(spacing: 10) {
-                            // Google — stub alert (SDK pas encore branché)
+                            // Google — flow natif via GoogleSignIn SDK
                             Button {
                                 Haptics.light()
-                                showGoogleAlert = true
+                                handleGoogleSignIn()
                             } label: {
                                 HStack(spacing: 8) {
                                     Image("logo_google")
@@ -659,7 +690,7 @@ struct OnboardingView: View {
             Spacer()
 
             EmotionBubble(
-                emotion: .confus,
+                emotion: .empathique,
                 text: viewModel.reformulationText,
                 size: .large,
                 style: .emotional
@@ -705,8 +736,8 @@ struct OnboardingView: View {
             }
 
             EmotionBubble(
-                emotion: .heureux,
-                text: "Jour 1. Reviens demain.",
+                emotion: .fiere,
+                text: "Ton premier jour. Bravo d'avoir commencé.",
                 size: .medium,
                 style: .standard
             )
@@ -725,7 +756,7 @@ struct OnboardingView: View {
 
             EmotionBubble(
                 emotion: .calme,
-                text: "Je t'enverrai un signe quand c'est l'heure.",
+                text: "Tu recevras un signe quand ce sera l'heure.",
                 size: .medium,
                 style: .standard
             )
@@ -787,9 +818,10 @@ struct OnboardingView: View {
         VStack(spacing: 32) {
             Spacer()
 
-            Image(systemName: "crown.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(Color.mdYellow)
+            Image("emotion_fiere")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 120, height: 120)
 
             Text("7 jours pour voir si ça te parle.")
                 .font(.title3)
@@ -808,7 +840,7 @@ struct OnboardingView: View {
                     Task {
                         await StoreKitService.shared.purchase()
                     }
-                    viewModel.goNext()
+                    viewModel.complete(context: modelContext, appState: appState)
                 } label: {
                     Text("Essayer gratuitement")
                         .font(.headline)
@@ -820,61 +852,12 @@ struct OnboardingView: View {
                 }
 
                 Button {
-                    viewModel.goNext()
+                    viewModel.complete(context: modelContext, appState: appState)
                 } label: {
                     Text("Continuer sans abonnement")
                         .font(.subheadline)
                         .foregroundStyle(Color.mdTextGray)
                 }
-            }
-            .padding(.horizontal, 32)
-            .padding(.bottom, 40)
-        }
-    }
-
-    // MARK: - Step 8: Account
-
-    private var accountStep: some View {
-        VStack(spacing: 32) {
-            Spacer()
-
-            EmotionBubble(
-                emotion: .heureux,
-                text: "Pour ne rien perdre, crée ton espace.",
-                size: .large,
-                style: .standard
-            )
-
-            VStack(spacing: 16) {
-                // NB : depuis le refactor Supabase, l'auth se fait au step .login
-                // en début d'onboarding. Cet écran n'est plus qu'une confirmation.
-                // Il sera probablement supprimé bientôt (décision utilisateur).
-                Button {
-                    viewModel.complete(context: modelContext, appState: appState)
-                } label: {
-                    Text("C'est parti")
-                        .font(.kokoraDisplay(18, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 58)
-                        .background(Color(red: 0.059, green: 0.059, blue: 0.059))
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                }
-                .padding(.horizontal, 32)
-            }
-
-            Spacer()
-
-            Button {
-                viewModel.complete(context: modelContext, appState: appState)
-            } label: {
-                Text("Commencer")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color.mdGreen)
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 40)

@@ -248,8 +248,8 @@ struct AccountabilityView: View {
 
             VStack(spacing: 12) {
                 EmotionBubble(
-                emotion: .heureux,
-                    text: "C'est noté. Reviens demain.",
+                    emotion: .empathique,
+                    text: "Merci de l'avoir noté. Demain est un autre jour.",
                     size: .large
                 )
 

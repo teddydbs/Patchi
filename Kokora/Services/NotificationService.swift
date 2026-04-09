@@ -54,7 +54,7 @@ final class NotificationService {
             dateComponents.hour = hour
             dateComponents.minute = 0
 
-            let content = makeContent(title: "Kokora", body: phrase)
+            let content = makeContent(title: "Check-in du soir", body: phrase)
             let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
             let request = UNNotificationRequest(
                 identifier: "evening-\(i)",
@@ -108,7 +108,7 @@ final class NotificationService {
             "La lettre est arrivée. Elle t'attendait.",
         ]
 
-        let content = makeContent(title: "Kokora", body: phrases.randomElement() ?? "Kokora est là.", categoryId: "LETTER_DELIVERY")
+        let content = makeContent(title: "Une lettre est arrivée", body: phrases.randomElement() ?? "Une lettre t'attend.", categoryId: "LETTER_DELIVERY")
         content.userInfo = ["letterId": letterId.uuidString]
 
         let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
@@ -134,7 +134,7 @@ final class NotificationService {
             "Le rituel de la semaine t'attend.",
             "Dimanche soir. On fait le bilan ?",
             "Ta semaine mérite un regard. Prends 5 minutes.",
-            "Kokora t'attend pour le bilan de la semaine.",
+            "Le bilan de la semaine t'attend.",
             "C'est dimanche. Qu'est-ce que cette semaine t'a appris ?",
         ]
 
@@ -143,7 +143,7 @@ final class NotificationService {
         dateComponents.hour = 19
         dateComponents.minute = 0
 
-        let content = makeContent(title: "Rituel du dimanche", body: phrases.randomElement() ?? "Kokora est là.")
+        let content = makeContent(title: "Rituel du dimanche", body: phrases.randomElement() ?? "C'est l'heure du bilan.")
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
         let request = UNNotificationRequest(identifier: "sunday-ritual", content: content, trigger: trigger)
 
@@ -158,7 +158,7 @@ final class NotificationService {
         guard reminderDate > Date() else { return }
 
         let body = "Ta décision sur \(title) — encore \(daysBefore) jours avant le verdict."
-        let content = makeContent(title: "Kokora", body: body)
+        let content = makeContent(title: "Rappel", body: body)
         content.userInfo = ["decisionId": decisionId.uuidString]
 
         let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: reminderDate)
@@ -181,7 +181,7 @@ final class NotificationService {
         }
     }
 
-    /// Supprime toutes les notifications Kokora
+    /// Supprime toutes les notifications en attente
     func removeAllNotifications() {
         center.removeAllPendingNotificationRequests()
     }
@@ -222,7 +222,7 @@ final class NotificationService {
         "Ta journée mérite d'être notée. Même en deux mots.",
         "Ce soir, sois honnête avec toi-même.",
         "Qu'est-ce que tu aurais aimé faire différemment ?",
-        "Kokora est là. Comment tu te sens ?",
+        "C'est le moment. Comment tu te sens ?",
         "Prends un instant. Juste pour toi.",
         "La journée est finie. Qu'est-ce qu'elle t'a appris ?",
         "Ce soir, qu'est-ce qui compte ?",

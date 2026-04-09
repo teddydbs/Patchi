@@ -63,12 +63,12 @@ struct StatsView: View {
                 .font(.system(size: 72, weight: .heavy, design: .rounded))
                 .foregroundStyle(Color.mdOrange)
 
-            Text("check-ins avant de debloquer\ntes premieres stats")
+            Text("check-ins avant de débloquer\ntes premières stats")
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(Color.mdTextGray)
                 .multilineTextAlignment(.center)
 
-            Text("Kokora apprend encore a te connaitre.\nReviens apres quelques check-ins !")
+            Text("Encore un peu de patience.\nReviens après quelques check-ins !")
                 .font(.system(size: 14))
                 .foregroundStyle(Color.mdTextLight)
                 .multilineTextAlignment(.center)
@@ -261,17 +261,6 @@ private struct StatsCard<Content: View>: View {
 private struct CountdownCard: View {
     let message: String
     let remaining: Int
-
-    private func moodImageName(score: Int) -> String {
-        switch score {
-        case 5: return "emotion_heureux"
-        case 4: return "emotion_serein"
-        case 3: return "emotion_nostalgique"
-        case 2: return "emotion_triste"
-        case 1: return "emotion_seul"
-        default: return "emotion_serein"
-        }
-    }
 
     var body: some View {
         HStack(spacing: 14) {
