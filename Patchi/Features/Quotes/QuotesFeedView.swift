@@ -35,7 +35,7 @@ struct QuotesFeedView: View {
 
     private var filterBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: DS.Spacing.sm) {
+            HStack(spacing: 8) {
                 FilterChipDS(label: "Tout", isSelected: viewModel.selectedCategory == nil) {
                     viewModel.selectedCategory = nil
                     viewModel.clearCache()
@@ -56,10 +56,10 @@ struct QuotesFeedView: View {
                     // TODO: Vue favoris
                 }
             }
-            .padding(.horizontal, DS.Spacing.lg)
-            .padding(.vertical, DS.Spacing.sm)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 8)
         }
-        .background(.ultraThinMaterial)
+        .background(Color.white.opacity(0.85))
         .safeAreaPadding(.top)
     }
 }
@@ -72,85 +72,75 @@ private struct QuoteCardView: View {
     let onToggleFavorite: () -> Void
     let onShare: () -> Void
 
-    private var gradientColors: [Color] {
+    /// Vivid solid background color per category
+    private var backgroundColor: Color {
         switch quote.category {
-        case .courage: [Color(red: 0.15, green: 0.15, blue: 0.35), Color(red: 0.25, green: 0.2, blue: 0.5)]
-        case .decision: [Color(red: 0.2, green: 0.12, blue: 0.35), Color(red: 0.35, green: 0.15, blue: 0.45)]
-        case .soi: [Color(red: 0.1, green: 0.2, blue: 0.35), Color(red: 0.15, green: 0.3, blue: 0.45)]
-        case .relations: [Color(red: 0.3, green: 0.15, blue: 0.2), Color(red: 0.4, green: 0.2, blue: 0.3)]
-        case .travail: [Color(red: 0.15, green: 0.2, blue: 0.25), Color(red: 0.2, green: 0.25, blue: 0.35)]
-        case .nature: [Color(red: 0.1, green: 0.25, blue: 0.2), Color(red: 0.15, green: 0.35, blue: 0.25)]
+        case .courage:   Color(red: 1.0, green: 0.72, blue: 0.55)   // warm orange-peach
+        case .decision:  Color(red: 0.55, green: 0.73, blue: 0.95)  // calm blue
+        case .soi:       Color(red: 0.75, green: 0.65, blue: 0.92)  // soft purple
+        case .relations: Color(red: 0.97, green: 0.60, blue: 0.65)  // warm pink
+        case .travail:   Color(red: 0.45, green: 0.85, blue: 0.58)  // fresh green
+        case .nature:    Color(red: 0.55, green: 0.88, blue: 0.78)  // mint green
         }
     }
 
     var body: some View {
         ZStack {
-            // Fond gradient immersif (style Reflectly)
-            LinearGradient(
-                colors: gradientColors,
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            // Fond vivid solid
+            backgroundColor
+                .ignoresSafeArea()
 
-            // Cercle décoratif subtil
-            Circle()
-                .fill(quote.category.color.opacity(0.08))
-                .frame(width: 300, height: 300)
-                .blur(radius: 60)
-                .offset(y: -40)
-
-            VStack(spacing: DS.Spacing.xxl) {
+            VStack(spacing: 32) {
                 Spacer()
 
                 // Citation
-                VStack(spacing: DS.Spacing.lg) {
+                VStack(spacing: 20) {
                     Text("\u{201C}")
                         .font(.system(size: 48, weight: .bold, design: .serif))
-                        .foregroundStyle(.white.opacity(0.3))
+                        .foregroundStyle(.white.opacity(0.5))
 
                     Text(quote.text)
                         .font(.patchiQuote(26))
                         .italic()
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.white)
-                        .padding(.horizontal, DS.Spacing.xxl)
+                        .padding(.horizontal, 32)
 
                     HStack {
                         Rectangle()
-                            .fill(.white.opacity(0.2))
+                            .fill(.white.opacity(0.4))
                             .frame(width: 32, height: 1)
                         Text(quote.author.uppercased())
                             .font(.system(size: 12, weight: .semibold))
                             .tracking(2)
-                            .foregroundStyle(.white.opacity(0.6))
+                            .foregroundStyle(.white.opacity(0.8))
                         Rectangle()
-                            .fill(.white.opacity(0.2))
+                            .fill(.white.opacity(0.4))
                             .frame(width: 32, height: 1)
                     }
                 }
 
                 Spacer()
 
-                // Actions
-                HStack(spacing: DS.Spacing.xxl) {
+                // Actions — white circles
+                HStack(spacing: 32) {
                     Button(action: onToggleFavorite) {
                         Image(systemName: isFavorite ? "heart.fill" : "heart")
                             .font(.title2)
-                            .foregroundStyle(isFavorite ? .red : .white.opacity(0.7))
+                            .foregroundStyle(isFavorite ? .red : .white)
                             .frame(width: 56, height: 56)
-                            .background(Circle().fill(.white.opacity(0.1)))
+                            .background(Circle().fill(.white.opacity(0.25)))
                     }
 
                     Button(action: onShare) {
                         Image(systemName: "square.and.arrow.up")
                             .font(.title2)
-                            .foregroundStyle(.white.opacity(0.7))
+                            .foregroundStyle(.white)
                             .frame(width: 56, height: 56)
-                            .background(Circle().fill(.white.opacity(0.1)))
+                            .background(Circle().fill(.white.opacity(0.25)))
                     }
                 }
-                .padding(.bottom, DS.Spacing.xxl)
+                .padding(.bottom, 32)
             }
 
             // Catégorie en bas à gauche
@@ -160,16 +150,15 @@ private struct QuoteCardView: View {
                     Text(quote.category.displayName)
                         .font(.system(size: 11, weight: .semibold))
                         .tracking(1)
-                        .padding(.horizontal, DS.Spacing.md)
+                        .padding(.horizontal, 12)
                         .padding(.vertical, 6)
-                        .background(Capsule().fill(.white.opacity(0.12)))
-                        .foregroundStyle(.white.opacity(0.7))
+                        .background(Capsule().fill(.white.opacity(0.25)))
+                        .foregroundStyle(.white)
                     Spacer()
                 }
-                .padding(.horizontal, DS.Spacing.lg)
-                .padding(.bottom, DS.Spacing.lg)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
             }
         }
     }
 }
-

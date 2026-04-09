@@ -1,3 +1,4 @@
+import Lottie
 import SwiftUI
 
 struct PatchiView: View {
@@ -30,14 +31,33 @@ struct PatchiView: View {
 
     @ViewBuilder
     private var patchiBody: some View {
-        // Tenter de charger l'asset réel, sinon fallback SF Symbol
-        if let _ = UIImage(named: expression.assetName) {
+        if let animation = Self.lottieAnimation(for: expression) {
+            LottieView(animation: animation)
+                .playing(loopMode: expression.isLooping ? .loop : .playOnce)
+        } else if UIImage(named: expression.assetName) != nil {
             Image(expression.assetName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
         } else {
             PatchiPlaceholder(expression: expression, size: size)
         }
+    }
+
+    /// Cache statique des animations Lottie résolues.
+    /// Sans ce cache, `LottieAnimation.named(_:)` parse le JSON du bundle à chaque re-render,
+    /// ce qui est catastrophique pour la perf vu que PatchiView est utilisé partout
+    /// (Home, CheckIn, onboarding, listes). On garde la valeur optionnelle pour
+    /// mémoriser aussi les absences et éviter de retaper le disque.
+    private static var animationCache: [String: LottieAnimation?] = [:]
+
+    private static func lottieAnimation(for expression: PatchiExpression) -> LottieAnimation? {
+        let name = expression.lottieAnimationName
+        if let cached = animationCache[name] {
+            return cached
+        }
+        let animation = LottieAnimation.named(name)
+        animationCache[name] = animation
+        return animation
     }
 }
 

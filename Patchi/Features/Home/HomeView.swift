@@ -1,6 +1,8 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - HomeView
+
 struct HomeView: View {
     @Environment(AppState.self) private var appState
     @Query(sort: \CheckIn.date, order: .reverse) private var checkIns: [CheckIn]
@@ -12,46 +14,51 @@ struct HomeView: View {
     @State private var showAccountability = false
     @State private var showSettings = false
     @State private var showDecisions = false
+    @State private var blobsAnimating = false
 
     var body: some View {
         NavigationStack {
             ZStack {
-                // Fond teinté + blobs
-                Color.dsBackground.ignoresSafeArea()
-                BlobBackground(
-                    colors: blobColors,
-                    opacity: 0.12
-                )
+                Color.mdBg.ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: DS.Spacing.xl) {
-                        headerSection
-                            .padding(.top, DS.Spacing.sm)
+                    VStack(spacing: 0) {
+                        heroSection
+
+                        calendarStrip
+                            .padding(.top, 24)
+
+                        checkInCTA
+                            .padding(.top, 24)
 
                         if checkIns.isEmpty && accountabilityEntries.isEmpty {
                             welcomeCard
+                                .padding(.top, 24)
                         }
 
-                        weekCalendar
-
-                        dailyChallengeCard
+                        challengeSection
+                            .padding(.top, 28)
 
                         let pending = viewModel.pendingDecisions(from: decisions)
                         if !pending.isEmpty {
-                            pendingDecisionsCard(pending)
+                            pendingSection(pending)
+                                .padding(.top, 28)
                         }
 
                         if let latest = checkIns.first {
-                            latestCheckInCard(latest)
+                            lastCheckInSection(latest)
+                                .padding(.top, 28)
                         }
 
-                        accountabilityButton
+                        accountabilitySection
+                            .padding(.top, 16)
 
-                        dailyQuoteCard
+                        dailyQuoteSection
+                            .padding(.top, 16)
 
-                        Spacer(minLength: DS.Spacing.xxl)
+                        Spacer(minLength: 40)
                     }
-                    .padding(.horizontal, DS.Spacing.lg)
+                    .padding(.horizontal, 28)
                 }
             }
             .navigationBarHidden(true)
@@ -64,272 +71,447 @@ struct HomeView: View {
             .sheet(isPresented: $showDecisions) {
                 DecisionListView()
             }
-        }
-    }
-
-    // MARK: - Blob Colors
-
-    private var blobColors: [Color] {
-        if let mood = checkIns.first?.moodScore {
-            return [Color.mood(score: mood), .patchiOrange, Color.mood(score: mood).opacity(0.7)]
-        }
-        return [.patchiOrange, .accentPurple, .accentAmber]
-    }
-
-    // MARK: - Header
-
-    private var headerSection: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: DS.Spacing.xs) {
-                Text(Date().formattedLong)
-                    .font(.patchiTitle(DS.Font.cardTitle))
-                    .foregroundStyle(Color.dsTextPrimary)
-
-                if let user = viewModel.currentUserName(from: users) {
-                    Text("Salut \(user).")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(Color.dsTextSecondary)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 3.5).repeatForever(autoreverses: true)) {
+                    blobsAnimating = true
                 }
             }
+        }
+    }
 
-            Spacer()
+    // MARK: - Hero Section (Blobs + Greeting)
 
-            // Patchi mini + settings
-            HStack(spacing: DS.Spacing.md) {
-                PatchiView(
-                    expression: viewModel.patchiExpression(latestMood: checkIns.first?.moodScore),
-                    size: .small,
-                    showShadow: false
-                )
-
+    private var heroSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Top bar : bouton réglages à droite
+            HStack {
+                Spacer()
                 Button {
-                    Haptics.light()
                     showSettings = true
                 } label: {
                     Image(systemName: "gearshape.fill")
-                        .font(.title3)
-                        .foregroundStyle(Color.dsTextSecondary)
-                        .frame(width: 44, height: 44)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundStyle(Color.mdTextGray)
+                        .frame(width: 42, height: 42)
+                        .background(Color.mdBgSubtle)
+                        .clipShape(Circle())
                 }
+                .accessibilityLabel("Réglages")
+            }
+
+            // Blob characters floating
+            ZStack {
+                // Companion blobs — real Patchi illustrations
+                companionBlob(imageName: "emotion_chanceux", size: 44, xOffset: -120, yOffset: -10, delay: 1.0)
+                companionBlob(imageName: "emotion_serein", size: 40, xOffset: 110, yOffset: -20, delay: 2.0)
+                companionBlob(imageName: "emotion_nostalgique", size: 34, xOffset: -55, yOffset: 40, delay: 0.5)
+                companionBlob(imageName: "emotion_surpris", size: 32, xOffset: 70, yOffset: 35, delay: 2.5)
+
+                // Patchi main blob
+                Image("emotion_heureux")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 90, height: 90)
+                    .offset(y: blobsAnimating ? -6 : 0)
+                    .animation(
+                        .easeInOut(duration: 3.5).repeatForever(autoreverses: true),
+                        value: blobsAnimating
+                    )
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 140)
+
+            // Greeting
+            if let name = viewModel.currentUserName(from: users) {
+                Text("Bonjour, \(name)")
+                    .font(.system(size: 28, weight: .heavy))
+                    .foregroundStyle(Color.mdTextBlack)
+                    .tracking(-0.8)
+            } else {
+                Text("Bonjour")
+                    .font(.system(size: 28, weight: .heavy))
+                    .foregroundStyle(Color.mdTextBlack)
+                    .tracking(-0.8)
+            }
+
+            Text("Comment tu te sens aujourd'hui ?")
+                .font(.system(size: 16, weight: .regular))
+                .foregroundStyle(Color.mdTextGray)
+        }
+        .padding(.top, 12)
+    }
+
+    private func companionBlob(imageName: String, size: CGFloat, xOffset: CGFloat, yOffset: CGFloat, delay: Double) -> some View {
+        Image(imageName)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: size, height: size)
+            .offset(x: xOffset, y: yOffset)
+            .offset(y: blobsAnimating ? -4 : 0)
+            .animation(
+                .easeInOut(duration: 4).repeatForever(autoreverses: true).delay(delay),
+                value: blobsAnimating
+            )
+    }
+
+    // MARK: - Calendar Strip (Mood Faces)
+
+    private var calendarStrip: some View {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let weekDays = (0..<7).compactMap { calendar.date(byAdding: .day, value: -6 + $0, to: today) }
+
+        return HStack(spacing: 0) {
+            ForEach(weekDays, id: \.self) { date in
+                VStack(spacing: 8) {
+                    Text(viewModel.dayLetter(date))
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.mdTextLight)
+                        .textCase(.uppercase)
+
+                    let mood = viewModel.moodScore(on: date, in: checkIns)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(mood != nil ? Color.moodVivid(mood!) : Color.mdBgSubtle)
+                            .frame(width: 42, height: 42)
+
+                        // Patchi illustration based on mood
+                        if let mood {
+                            Image(moodImageName(score: mood))
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 30, height: 30)
+                        } else {
+                            Image("emotion_seul")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 26, height: 26)
+                                .opacity(0.3)
+                        }
+                    }
+                    .overlay(
+                        Group {
+                            if date.isToday {
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(Color.mdTextBlack, lineWidth: 2.5)
+                                    .frame(width: 42, height: 42)
+                            }
+                        }
+                    )
+                }
+                .frame(maxWidth: .infinity)
             }
         }
+    }
+
+    private func moodImageName(score: Int) -> String {
+        switch score {
+        case 5: return "emotion_heureux"
+        case 4: return "emotion_serein"
+        case 3: return "emotion_nostalgique"
+        case 2: return "emotion_triste"
+        case 1: return "emotion_seul"
+        default: return "emotion_serein"
+        }
+    }
+
+    // MARK: - Check-in CTA
+
+    private var checkInCTA: some View {
+        Button {
+            Haptics.light()
+            appState.selectedTab = .newEntry
+        } label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color.mdGreen)
+
+                // Decorative circles
+                Circle()
+                    .fill(Color.white.opacity(0.12))
+                    .frame(width: 100, height: 100)
+                    .offset(x: 110, y: -35)
+
+                Circle()
+                    .fill(Color.white.opacity(0.08))
+                    .frame(width: 60, height: 60)
+                    .offset(x: 50, y: 30)
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Comment tu vas ?")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundStyle(.white)
+                            .tracking(-0.3)
+
+                        Text("Fais ton check-in du jour")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundStyle(.white.opacity(0.75))
+                    }
+
+                    Spacer()
+
+                    Circle()
+                        .fill(Color.white.opacity(0.2))
+                        .frame(width: 40, height: 40)
+                        .overlay(
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.white)
+                        )
+                }
+                .padding(24)
+            }
+            .frame(height: 90)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        }
+        .buttonStyle(SpringPressStyle())
     }
 
     // MARK: - Welcome Card
 
     private var welcomeCard: some View {
-        ClayCard(tint: .patchiOrange) {
-            VStack(spacing: DS.Spacing.md) {
-                PatchiWithBubble(
-                    expression: .happy,
-                    text: {
-                        if let name = viewModel.currentUserName(from: users) {
-                            return "Bienvenue \(name). Ton journal t'attend."
-                        }
-                        return "Bienvenue. Ton journal t'attend."
-                    }(),
-                    patchiSize: .medium,
-                    bubbleStyle: .emotional
-                )
-
-                Text("Fais ton premier check-in pour commencer.")
-                    .font(.system(size: DS.Font.caption, weight: .medium))
-                    .foregroundStyle(Color.dsTextSecondary)
-                    .multilineTextAlignment(.center)
-            }
-            .frame(maxWidth: .infinity)
-        }
-    }
-
-    // MARK: - Week Calendar
-
-    private var weekCalendar: some View {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let weekDays = (0..<7).compactMap { calendar.date(byAdding: .day, value: -6 + $0, to: today) }
-
-        return ClayCard {
-            HStack(spacing: 0) {
-                ForEach(weekDays, id: \.self) { date in
-                    VStack(spacing: 6) {
-                        Text(viewModel.dayLetter(date))
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(Color.dsTextSecondary)
-
-                        ZStack {
-                            if date.isToday {
-                                Circle()
-                                    .fill(Color.patchiOrange)
-                                    .frame(width: 36, height: 36)
-                            } else if let mood = viewModel.moodScore(on: date, in: checkIns) {
-                                Circle()
-                                    .fill(Color.mood(score: mood).opacity(0.2))
-                                    .frame(width: 36, height: 36)
-                            }
-
-                            Text("\(calendar.component(.day, from: date))")
-                                .font(.system(size: 15, weight: date.isToday ? .bold : .regular))
-                                .foregroundStyle(date.isToday ? .white : .dsTextPrimary)
-                        }
-                        .frame(width: 36, height: 36)
-
-                        // Dot mood
-                        Circle()
-                            .fill(viewModel.dotColor(for: date, in: checkIns))
-                            .frame(width: 5, height: 5)
+        VStack(spacing: 16) {
+            PatchiWithBubble(
+                expression: .happy,
+                text: {
+                    if let name = viewModel.currentUserName(from: users) {
+                        return "Bienvenue \(name). Ton journal t'attend."
                     }
-                    .frame(maxWidth: .infinity)
-                }
-            }
+                    return "Bienvenue. Ton journal t'attend."
+                }(),
+                patchiSize: .medium,
+                bubbleStyle: .emotional
+            )
+
+            Text("Fais ton premier check-in pour commencer.")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Color.mdTextGray)
+                .multilineTextAlignment(.center)
         }
+        .frame(maxWidth: .infinity)
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color.mdOrangeBg)
+        )
     }
 
-    // MARK: - Daily Challenge
+    // MARK: - Challenge Section
 
-    private var dailyChallengeCard: some View {
+    private var challengeSection: some View {
         let recentActivities = checkIns.prefix(5).flatMap(\.activities)
         let challenge = viewModel.dailyChallenge(recentActivities: recentActivities)
 
-        return ClayCard(tint: .patchiOrange) {
-            VStack(alignment: .leading, spacing: DS.Spacing.md) {
-                HStack {
-                    Image(systemName: "flame.fill")
-                        .font(.title2)
-                        .foregroundStyle(Color.patchiOrange)
+        return VStack(alignment: .leading, spacing: 14) {
+            // Section header
+            HStack {
+                Text("Défi du jour")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Color.mdTextBlack)
+                    .tracking(-0.3)
 
-                    Text("Défi du jour")
-                        .font(.patchiTitle(DS.Font.cardTitle))
-                        .foregroundStyle(Color.dsTextPrimary)
+                Spacer()
 
-                    Spacer()
+                Text(viewModel.timeUntilMidnight)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.mdGreen)
+            }
 
-                    Text(viewModel.timeUntilMidnight)
-                        .font(.system(size: DS.Font.caption, weight: .semibold))
-                        .foregroundStyle(Color.dsTextSecondary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(Capsule().fill(Color.dsCard))
-                }
-
-                HStack(spacing: DS.Spacing.md) {
-                    Image(systemName: challenge.icon)
-                        .font(.title)
-                        .foregroundStyle(Color.patchiOrange)
-                        .frame(width: 48, height: 48)
-                        .background(
-                            Circle()
-                                .fill(Color.patchiOrange.opacity(0.12))
+            // Challenge card
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 12) {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.mdOrangeBg)
+                        .frame(width: 40, height: 40)
+                        .overlay(
+                            Image(systemName: challenge.icon)
+                                .font(.system(size: 18))
+                                .foregroundStyle(Color.mdOrange)
                         )
 
-                    Text(challenge.text)
-                        .font(.system(size: DS.Font.body, weight: .regular))
-                        .foregroundStyle(Color.dsTextPrimary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Challenge")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(Color.mdTextBlack)
 
-                    Spacer()
+                        Text("Connexion")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Color.mdTextLight)
+                    }
                 }
+
+                Text(challenge.text)
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundStyle(Color.mdTextGray)
+                    .lineSpacing(4)
 
                 if !viewModel.isDailyChallengeCompleted {
-                    PillButton(title: "C'est fait !", icon: "checkmark") {
-                        withAnimation(DS.Animation.micro) {
+                    Button {
+                        Haptics.light()
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                             viewModel.isDailyChallengeCompleted = true
                         }
+                    } label: {
+                        Text("C'est fait !")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(Color.mdGreen)
+                            )
                     }
+                    .buttonStyle(SpringPressStyle())
                 } else {
-                    HStack(spacing: DS.Spacing.sm) {
+                    HStack(spacing: 8) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(Color.dsSuccess)
+                            .font(.title3)
+                            .foregroundStyle(Color.mdGreen)
                         Text("Bravo !")
-                            .font(.system(size: DS.Font.body, weight: .semibold))
-                            .foregroundStyle(Color.dsSuccess)
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(Color.mdGreen)
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: DS.buttonHeight)
-                    .transition(.clay)
+                    .frame(height: 48)
+                    .transition(.scale.combined(with: .opacity))
                 }
             }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(Color.mdBgSubtle)
+            )
         }
     }
 
     // MARK: - Pending Decisions
 
-    private func pendingDecisionsCard(_ pendingDecisions: [Decision]) -> some View {
-        TappableClayCard(tint: .accentPurple) {
-            Haptics.light()
-            showDecisions = true
-        } content: {
-            VStack(alignment: .leading, spacing: DS.Spacing.md) {
-                HStack {
-                    Image(systemName: "clock.fill")
-                        .foregroundStyle(Color.accentPurple)
-                    Text("\(pendingDecisions.count) décision\(pendingDecisions.count > 1 ? "s" : "") en attente")
-                        .font(.system(size: DS.Font.body, weight: .semibold))
-                        .foregroundStyle(Color.dsTextPrimary)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color.dsTextSecondary)
-                }
+    private func pendingSection(_ pendingDecisions: [Decision]) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("Décisions")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Color.mdTextBlack)
+                    .tracking(-0.3)
 
-                ForEach(pendingDecisions.prefix(3)) { decision in
-                    HStack {
-                        Circle()
-                            .fill(Color.accentPurple.opacity(0.2))
-                            .frame(width: 8, height: 8)
-                        Text(decision.title)
-                            .font(.system(size: 15))
-                            .foregroundStyle(Color.dsTextPrimary)
-                            .lineLimit(1)
-                        Spacer()
-                        Text("J-\(decision.reviewAt30.daysSinceNow)")
-                            .font(.system(size: DS.Font.caption, weight: .bold))
-                            .foregroundStyle(Color.accentAmber)
-                    }
+                Spacer()
+
+                Button {
+                    Haptics.light()
+                    showDecisions = true
+                } label: {
+                    Text("Voir tout")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.mdGreen)
                 }
             }
+
+            Button {
+                Haptics.light()
+                showDecisions = true
+            } label: {
+                VStack(spacing: 12) {
+                    ForEach(pendingDecisions.prefix(3)) { decision in
+                        HStack(spacing: 12) {
+                            Circle()
+                                .fill(Color.accentPurple.opacity(0.2))
+                                .frame(width: 36, height: 36)
+                                .overlay(
+                                    Image(systemName: "clock.fill")
+                                        .font(.system(size: 14))
+                                        .foregroundStyle(Color.accentPurple)
+                                )
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(decision.title)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(Color.mdTextBlack)
+                                    .lineLimit(1)
+
+                                Text("Verdict dans J-\(decision.reviewAt30.daysSinceNow)")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(Color.mdTextGray)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(Color.mdTextLight)
+                        }
+                        .padding(.vertical, 4)
+
+                        if decision.id != pendingDecisions.prefix(3).last?.id {
+                            Divider()
+                                .foregroundStyle(Color.mdBorder)
+                        }
+                    }
+                }
+                .padding(20)
+                .background(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .fill(Color.mdBgSubtle)
+                )
+            }
+            .buttonStyle(.plain)
         }
     }
 
-    // MARK: - Latest Check-in
+    // MARK: - Last Check-in
 
-    private func latestCheckInCard(_ checkIn: CheckIn) -> some View {
-        ClayCard(tint: Color.mood(score: checkIn.moodScore)) {
-            VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+    private func lastCheckInSection(_ checkIn: CheckIn) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("Dernier check-in")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Color.mdTextBlack)
+                    .tracking(-0.3)
+
+                Spacer()
+
+                Text("Voir tout")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.mdGreen)
+            }
+
+            VStack(alignment: .leading, spacing: 14) {
                 HStack {
-                    Text("Dernier check-in")
-                        .font(.system(size: DS.Font.caption, weight: .semibold))
-                        .foregroundStyle(Color.dsTextSecondary)
+                    Text("Humeur du jour")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Color.mdTextBlack)
+
                     Spacer()
+
                     Text(checkIn.date.formattedRelative)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color.dsTextSecondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Capsule().fill(Color.dsCard))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Color.mdTextGray)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule().fill(Color.white)
+                        )
                 }
 
-                HStack(spacing: DS.Spacing.md) {
-                    // Mood indicator circle
-                    ZStack {
-                        Circle()
-                            .fill(Color.mood(score: checkIn.moodScore))
-                            .frame(width: 48, height: 48)
+                HStack(spacing: 16) {
+                    // Mood Patchi illustration
+                    Image(moodImageName(score: checkIn.moodScore))
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 56, height: 56)
 
-                        Text("\(checkIn.moodScore)")
-                            .font(.system(size: 22, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color.moodText(score: checkIn.moodScore))
-                    }
-
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(checkIn.title ?? "Humeur : \(checkIn.moodScore)/5")
-                            .font(.system(size: DS.Font.body, weight: .semibold))
-                            .foregroundStyle(Color.dsTextPrimary)
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(Color.mdTextBlack)
+                            .tracking(-0.3)
 
                         if let reformulation = checkIn.reformulation {
                             Text(reformulation)
-                                .font(.patchiBody(14))
-                                .italic()
-                                .foregroundStyle(Color.dsTextSecondary)
+                                .font(.custom("CrimsonPro-Italic", size: 15))
+                                .foregroundStyle(Color.mdTextGray)
+                                .lineSpacing(2)
                                 .lineLimit(2)
                         }
                     }
@@ -337,80 +519,75 @@ struct HomeView: View {
                     Spacer()
                 }
             }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(Color.mdGreenBg)
+            )
         }
     }
 
-    // MARK: - Accountability Button
+    // MARK: - Accountability
 
-    private var accountabilityButton: some View {
-        TappableClayCard {
+    private var accountabilitySection: some View {
+        Button {
+            Haptics.light()
             showAccountability = true
-        } content: {
-            HStack(spacing: DS.Spacing.md) {
-                ZStack {
-                    Circle()
-                        .fill(Color.accentPurple.opacity(0.12))
-                        .frame(width: 44, height: 44)
-
-                    Image(systemName: "moon.fill")
-                        .font(.title3)
-                        .foregroundStyle(Color.accentPurple)
-                }
+        } label: {
+            HStack(spacing: 14) {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color.accentPurple.opacity(0.1))
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Image(systemName: "moon.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(Color.accentPurple)
+                    )
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Check-in du soir")
-                        .font(.system(size: DS.Font.body, weight: .semibold))
-                        .foregroundStyle(Color.dsTextPrimary)
+                    Text("Bilan du soir")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Color.mdTextBlack)
                     Text("Prends un moment pour toi")
-                        .font(.system(size: DS.Font.caption))
-                        .foregroundStyle(Color.dsTextSecondary)
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundStyle(Color.mdTextGray)
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.dsTextSecondary)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.mdTextLight)
             }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(Color.mdBgSubtle)
+            )
         }
+        .buttonStyle(SpringPressStyle())
     }
 
     // MARK: - Daily Quote
 
-    private var dailyQuoteCard: some View {
+    private var dailyQuoteSection: some View {
         let seed = Calendar.current.ordinality(of: .day, in: .era, for: Date()) ?? 0
         let quote = allQuotes[seed % allQuotes.count]
 
-        return ZStack {
-            RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            quote.category.color.opacity(0.8),
-                            quote.category.color.opacity(0.4)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+        return VStack(spacing: 8) {
+            Text("\u{201C}\(quote.text)\u{201D}")
+                .font(.custom("CrimsonPro-Italic", size: 17))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Color.mdTextGray)
+                .lineSpacing(3)
 
-            VStack(spacing: DS.Spacing.md) {
-                Text(quote.text)
-                    .font(.patchiQuote(20))
-                    .italic()
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.white)
-
-                Text("— \(quote.author)")
-                    .font(.system(size: DS.Font.caption, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.7))
-            }
-            .padding(DS.Spacing.xl)
+            Text("— \(quote.author)")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Color.mdTextLight)
         }
-        .frame(minHeight: 140)
-        .clayShadow()
+        .padding(.vertical, 20)
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity)
     }
-
-    // MARK: - Helpers
-
 }
+

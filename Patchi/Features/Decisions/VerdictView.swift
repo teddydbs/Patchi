@@ -11,11 +11,7 @@ struct VerdictView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.dsBackground.ignoresSafeArea()
-                BlobBackground(
-                    colors: [.accentPurple, .patchiOrange],
-                    opacity: 0.1
-                )
+                Color.mdBg.ignoresSafeArea()
 
                 if !viewModel.isRevealed {
                     revealAnimation
@@ -39,7 +35,7 @@ struct VerdictView: View {
     // MARK: - Reveal Animation
 
     private var revealAnimation: some View {
-        VStack(spacing: DS.Spacing.xxl) {
+        VStack(spacing: 32) {
             Spacer()
 
             PatchiWithBubble(
@@ -52,16 +48,16 @@ struct VerdictView: View {
             )
 
             Text(decision.title)
-                .font(.patchiTitle(DS.Font.sectionTitle))
+                .font(.system(size: 32, weight: .bold))
                 .multilineTextAlignment(.center)
-                .foregroundStyle(Color.dsTextPrimary)
-                .padding(.horizontal, DS.Spacing.xxl)
+                .foregroundStyle(Color.mdTextBlack)
+                .padding(.horizontal, 32)
 
             Spacer()
         }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                withAnimation(DS.Animation.screen) {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
                     viewModel.isRevealed = true
                 }
             }
@@ -72,59 +68,65 @@ struct VerdictView: View {
 
     private var verdictForm: some View {
         ScrollView {
-            VStack(spacing: DS.Spacing.xl) {
+            VStack(spacing: 24) {
                 PatchiView(expression: .thinking, size: .medium)
 
                 // Decision originale
-                ClayCard(tint: .accentPurple) {
-                    VStack(alignment: .leading, spacing: DS.Spacing.sm) {
-                        Text("Ta décision")
-                            .font(.system(size: DS.Font.caption, weight: .semibold))
-                            .foregroundStyle(Color.dsTextSecondary)
-                        Text(decision.decision)
-                            .font(.system(size: 15))
-                            .foregroundStyle(Color.dsTextPrimary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Ta décision")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.mdTextGray)
+                    Text(decision.decision)
+                        .font(.system(size: 15))
+                        .foregroundStyle(Color.mdTextBlack)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(20)
+                .background(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .fill(Color.mdPurpleBg)
+                )
 
                 // Prediction + confiance
                 if !decision.prediction.isEmpty {
-                    ClayCard {
-                        VStack(alignment: .leading, spacing: DS.Spacing.sm) {
-                            HStack {
-                                Text("Ta prédiction")
-                                    .font(.system(size: DS.Font.caption, weight: .semibold))
-                                    .foregroundStyle(Color.dsTextSecondary)
-                                Spacer()
-                                if let confidence = decision.confidence {
-                                    Text("Confiance : \(confidence) %")
-                                        .font(.system(size: DS.Font.caption, weight: .bold))
-                                        .foregroundStyle(Color.patchiOrange)
-                                }
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Ta prédiction")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(Color.mdTextGray)
+                            Spacer()
+                            if let confidence = decision.confidence {
+                                Text("Confiance : \(confidence) %")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(Color.mdOrange)
                             }
-                            Text(decision.prediction)
-                                .font(.patchiBody(15))
-                                .italic()
-                                .foregroundStyle(Color.dsTextPrimary)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(decision.prediction)
+                            .font(.patchiBody(15))
+                            .italic()
+                            .foregroundStyle(Color.mdTextBlack)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(20)
+                    .background(
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .fill(Color.mdOrangeBg)
+                    )
                 }
 
                 // Verdict buttons
-                VStack(alignment: .leading, spacing: DS.Spacing.md) {
+                VStack(alignment: .leading, spacing: 12) {
                     Text("Le verdict")
-                        .font(.system(size: DS.Font.body, weight: .semibold))
-                        .foregroundStyle(Color.dsTextPrimary)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Color.mdTextBlack)
 
-                    HStack(spacing: DS.Spacing.sm) {
+                    HStack(spacing: 8) {
                         ForEach(Verdict.allCases) { verdict in
                             VerdictButton(
                                 verdict: verdict,
                                 isSelected: viewModel.selectedVerdict == verdict
                             ) {
-                                withAnimation(DS.Animation.micro) {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                     viewModel.selectedVerdict = verdict
                                 }
                                 Haptics.medium()
@@ -134,33 +136,41 @@ struct VerdictView: View {
                 }
 
                 // Ce qui s'est passe
-                VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text("Ce qui s'est passé")
-                        .font(.system(size: DS.Font.body, weight: .semibold))
-                        .foregroundStyle(Color.dsTextPrimary)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Color.mdTextBlack)
 
                     TextEditor(text: $viewModel.whatHappened)
                         .frame(minHeight: 100)
                         .dsTextEditor()
                 }
 
-                PillButton(
-                    title: "Enregistrer le verdict",
-                    style: viewModel.selectedVerdict != nil ? .primary : .secondary
-                ) {
+                // Save button
+                Button {
                     viewModel.saveVerdict(decision: decision, verdictType: verdictType)
+                } label: {
+                    Text("Enregistrer le verdict")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .fill(viewModel.selectedVerdict != nil ? Color.mdGreen : Color.mdTextGray)
+                        )
                 }
                 .disabled(viewModel.selectedVerdict == nil)
                 .opacity(viewModel.selectedVerdict != nil ? 1 : 0.5)
             }
-            .padding(DS.Spacing.lg)
+            .padding(20)
         }
     }
 
     // MARK: - Completion
 
     private var completionView: some View {
-        VStack(spacing: DS.Spacing.xxl) {
+        VStack(spacing: 32) {
             Spacer()
 
             PatchiWithBubble(
@@ -171,12 +181,12 @@ struct VerdictView: View {
             )
 
             Text("Touche pour fermer")
-                .font(.system(size: DS.Font.caption))
-                .foregroundStyle(Color.dsTextSecondary.opacity(0.5))
+                .font(.system(size: 13))
+                .foregroundStyle(Color.mdTextLight)
 
             Spacer()
         }
-        .padding(DS.Spacing.lg)
+        .padding(20)
         .onTapGesture { dismiss() }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
@@ -199,28 +209,36 @@ private struct VerdictButton: View {
                 Image(systemName: verdict.icon)
                     .font(.title2)
                 Text(verdict.displayName)
-                    .font(.system(size: DS.Font.caption, weight: .medium))
+                    .font(.system(size: 13, weight: .medium))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .background {
-                RoundedRectangle(cornerRadius: DS.Radius.chip, style: .continuous)
-                    .fill(isSelected ? verdictColor.opacity(0.15) : Color.dsCard)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(isSelected ? verdictBgColor : Color.mdBgSubtle)
             }
             .overlay {
-                RoundedRectangle(cornerRadius: DS.Radius.chip, style: .continuous)
-                    .strokeBorder(isSelected ? verdictColor : Color.dsBorder, lineWidth: isSelected ? 2 : 1)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(isSelected ? verdictColor : Color.mdBorder, lineWidth: isSelected ? 2 : 1)
             }
-            .foregroundStyle(isSelected ? verdictColor : Color.dsTextPrimary)
+            .foregroundStyle(isSelected ? verdictColor : Color.mdTextBlack)
         }
         .buttonStyle(SpringPressStyle())
     }
 
     private var verdictColor: Color {
         switch verdict {
-        case .right: .dsSuccess
-        case .partial: .accentAmber
-        case .wrong: .dsDestructive
+        case .right: .mdGreen
+        case .partial: .mdYellow
+        case .wrong: Color(red: 0.90, green: 0.30, blue: 0.30)
+        }
+    }
+
+    private var verdictBgColor: Color {
+        switch verdict {
+        case .right: .mdGreenBg
+        case .partial: .mdYellowBg
+        case .wrong: Color(red: 0.90, green: 0.30, blue: 0.30).opacity(0.12)
         }
     }
 }

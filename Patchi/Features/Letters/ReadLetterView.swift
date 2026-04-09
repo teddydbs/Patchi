@@ -9,8 +9,7 @@ struct ReadLetterView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.dsBackground.ignoresSafeArea()
-                BlobBackground(colors: [.patchiOrange, .accentAmber], opacity: 0.08)
+                Color.mdBg.ignoresSafeArea()
 
                 if !viewModel.isOpened {
                     envelopeView
@@ -34,7 +33,7 @@ struct ReadLetterView: View {
     // MARK: - Envelope
 
     private var envelopeView: some View {
-        VStack(spacing: DS.Spacing.xxl) {
+        VStack(spacing: 32) {
             Spacer()
 
             PatchiWithBubble(
@@ -45,14 +44,13 @@ struct ReadLetterView: View {
             )
 
             ZStack {
-                RoundedRectangle(cornerRadius: DS.Radius.card, style: .continuous)
-                    .fill(Color.patchiOrange.opacity(0.15))
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color.mdOrangeBg)
                     .frame(width: 220, height: 150)
-                    .clayShadow(color: .patchiOrange)
 
                 Image(systemName: "envelope.open.fill")
                     .font(.system(size: 50))
-                    .foregroundStyle(Color.patchiOrange)
+                    .foregroundStyle(Color.mdOrange)
                     .scaleEffect(viewModel.isOpening ? 1.2 : 1.0)
                     .animation(
                         .easeInOut(duration: 0.8).repeatCount(2),
@@ -61,64 +59,84 @@ struct ReadLetterView: View {
             }
 
             Text("Écrite le \(letter.writtenAt.formattedLong)")
-                .font(.system(size: DS.Font.caption))
-                .foregroundStyle(Color.dsTextSecondary)
+                .font(.system(size: 13))
+                .foregroundStyle(Color.mdTextGray)
 
             Spacer()
         }
-        .padding(DS.Spacing.lg)
+        .padding(20)
     }
 
     // MARK: - Letter Content
 
     private var letterContentView: some View {
         ScrollView {
-            VStack(spacing: DS.Spacing.xl) {
+            VStack(spacing: 24) {
                 Text("Le \(letter.writtenAt.formattedLong), tu avais écrit :")
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(Color.dsTextSecondary)
+                    .foregroundStyle(Color.mdTextGray)
 
-                ClayCard(tint: .patchiOrange) {
+                // Letter card
+                VStack {
                     Text(letter.content)
                         .font(.patchiBody(18))
                         .italic()
-                        .foregroundStyle(Color.dsTextPrimary)
+                        .foregroundStyle(Color.mdTextBlack)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .padding(20)
+                .background(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(Color.mdOrangeBg)
+                )
 
                 // Reply section
-                VStack(alignment: .leading, spacing: DS.Spacing.md) {
+                VStack(alignment: .leading, spacing: 12) {
                     Text("Tu veux répondre ?")
-                        .font(.system(size: DS.Font.body, weight: .semibold))
-                        .foregroundStyle(Color.dsTextPrimary)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Color.mdTextBlack)
 
                     Text("Ta réponse deviendra une nouvelle lettre pour dans 6 mois.")
-                        .font(.system(size: DS.Font.caption))
-                        .foregroundStyle(Color.dsTextSecondary)
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.mdTextGray)
 
                     TextEditor(text: $viewModel.replyText)
                         .frame(minHeight: 100)
-                        .dsTextEditor()
+                        .padding(8)
+                        .scrollContentBackground(.hidden)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color.mdBgSubtle)
+                        )
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(Color.mdBorder, lineWidth: 1)
+                        }
 
-                    PillButton(
-                        title: "Envoyer la réponse",
-                        icon: "paperplane.fill",
-                        style: canReply ? .primary : .secondary
-                    ) {
+                    Button {
                         viewModel.reply(to: letter, context: modelContext)
                         dismiss()
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "paperplane.fill")
+                            Text("Envoyer la réponse")
+                        }
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(canReply ? Color.mdGreen : Color.mdBorder)
+                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                     }
                     .disabled(!canReply)
                     .opacity(canReply ? 1 : 0.5)
                 }
             }
-            .padding(DS.Spacing.lg)
+            .padding(20)
         }
     }
 
-    private var canReply: Bool {
-        !viewModel.replyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
+    private var canReply: Bool { !viewModel.replyText.isBlank }
 }
 
 #Preview {

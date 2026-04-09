@@ -10,11 +10,10 @@ struct AccountabilityView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.dsBackground.ignoresSafeArea()
-                BlobBackground(colors: [.accentPurple, .patchiOrange], opacity: 0.08)
+                Color.mdBg.ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: DS.Spacing.xl) {
+                    VStack(spacing: 24) {
                         // Rattrapage d'hier si nécessaire
                         if viewModel.hasMissedYesterday {
                             catchUpCard
@@ -39,7 +38,7 @@ struct AccountabilityView: View {
                         // Mini heatmap (30 derniers jours)
                         miniHeatmap
                     }
-                    .padding(DS.Spacing.lg)
+                    .padding(20)
                 }
             }
             .navigationTitle("Ce soir")
@@ -70,33 +69,46 @@ struct AccountabilityView: View {
     // MARK: - Catch-up
 
     private var catchUpCard: some View {
-        ClayCard(tint: .patchiOrange) {
-            VStack(spacing: DS.Spacing.md) {
-                HStack {
-                    PatchiView(expression: .curious, size: .small)
-                    Text("Hier, qu'est-ce qui s'est passé ?")
-                        .font(.system(size: DS.Font.body, weight: .medium))
-                        .foregroundStyle(Color.dsTextPrimary)
-                    Spacer()
-                }
-
-                TextField("Ce que tu n'as pas fait hier...", text: $viewModel.missedAction, axis: .vertical)
-                    .dsTextField()
-                    .lineLimit(2...4)
-
-                PillButton(title: "Rattraper hier", style: .secondary) {
-                    viewModel.saveYesterdayCatchUp(context: modelContext)
-                }
-                .disabled(viewModel.missedAction.isEmpty)
-                .opacity(viewModel.missedAction.isEmpty ? 0.5 : 1)
+        VStack(spacing: 12) {
+            HStack {
+                PatchiView(expression: .curious, size: .small)
+                Text("Hier, qu'est-ce qui s'est passé ?")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(Color.mdTextBlack)
+                Spacer()
             }
+
+            TextField("Ce que tu n'as pas fait hier...", text: $viewModel.missedAction, axis: .vertical)
+                .dsTextField()
+                .lineLimit(2...4)
+
+            Button {
+                viewModel.saveYesterdayCatchUp(context: modelContext)
+            } label: {
+                Text("Rattraper hier")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .fill(Color.mdTextBlack)
+                    )
+            }
+            .disabled(viewModel.missedAction.isEmpty)
+            .opacity(viewModel.missedAction.isEmpty ? 0.5 : 1)
         }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color.mdOrangeBg)
+        )
     }
 
     // MARK: - Question
 
     private var questionSection: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.md) {
+        VStack(alignment: .leading, spacing: 12) {
             PatchiWithBubble(
                 expression: .thinking,
                 text: "Qu'aurais-tu aimé faire aujourd'hui que tu n'as pas fait ?",
@@ -108,11 +120,12 @@ struct AccountabilityView: View {
             TextEditor(text: $viewModel.missedAction)
                 .frame(minHeight: 80)
                 .padding(10)
-                .background(Color.dsCard)
-                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous))
+                .scrollContentBackground(.hidden)
+                .background(Color.mdBgSubtle)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(Color.dsBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(Color.mdBorder, lineWidth: 1)
                 }
                 .overlay(alignment: .topLeading) {
                     if viewModel.missedAction.isEmpty {
@@ -130,10 +143,10 @@ struct AccountabilityView: View {
     // MARK: - Raison
 
     private var reasonSection: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.md) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Pourquoi ?")
-                .font(.system(size: DS.Font.body, weight: .semibold))
-                .foregroundStyle(Color.dsTextPrimary)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Color.mdTextBlack)
 
             TextField("La raison (optionnel)", text: $viewModel.reason, axis: .vertical)
                 .dsTextField()
@@ -141,14 +154,14 @@ struct AccountabilityView: View {
 
             if !viewModel.reason.isEmpty {
                 Text("Cette raison est valable ?")
-                    .font(.system(size: DS.Font.body, weight: .medium))
-                    .foregroundStyle(Color.dsTextPrimary)
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(Color.mdTextBlack)
 
-                HStack(spacing: DS.Spacing.sm) {
+                HStack(spacing: 8) {
                     ReasonButton(
                         title: "Oui, valable",
                         isSelected: viewModel.isReasonValid == true,
-                        color: .accentAmber
+                        color: Color.mdYellow
                     ) {
                         viewModel.isReasonValid = true
                     }
@@ -156,7 +169,7 @@ struct AccountabilityView: View {
                     ReasonButton(
                         title: "Non, pas vraiment",
                         isSelected: viewModel.isReasonValid == false,
-                        color: .dsDestructive
+                        color: Color(red: 0.90, green: 0.30, blue: 0.30)
                     ) {
                         viewModel.isReasonValid = false
                     }
@@ -168,12 +181,12 @@ struct AccountabilityView: View {
     // MARK: - Importance
 
     private var importanceSection: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Importance")
-                .font(.system(size: DS.Font.body, weight: .semibold))
-                .foregroundStyle(Color.dsTextPrimary)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Color.mdTextBlack)
 
-            HStack(spacing: DS.Spacing.sm) {
+            HStack(spacing: 8) {
                 ForEach(1...5, id: \.self) { star in
                     Button {
                         viewModel.importance = star
@@ -181,7 +194,7 @@ struct AccountabilityView: View {
                     } label: {
                         Image(systemName: star <= viewModel.importance ? "star.fill" : "star")
                             .font(.title3)
-                            .foregroundStyle(star <= viewModel.importance ? Color.accentAmber : Color.dsBorder)
+                            .foregroundStyle(star <= viewModel.importance ? Color.mdYellow : Color.mdBorder)
                     }
                     .buttonStyle(SpringPressStyle())
                 }
@@ -197,14 +210,16 @@ struct AccountabilityView: View {
         } label: {
             HStack {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(Color.mdGreen)
                 Text("Aujourd'hui tout allait bien")
             }
             .font(.subheadline)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(Color.dsCard)
-            .clipShape(RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous))
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.mdGreenBg)
+            )
         }
         .buttonStyle(.plain)
     }
@@ -212,10 +227,10 @@ struct AccountabilityView: View {
     // MARK: - Mini Heatmap
 
     private var miniHeatmap: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Tes 30 derniers jours")
-                .font(.system(size: DS.Font.body, weight: .semibold))
-                .foregroundStyle(Color.dsTextPrimary)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Color.mdTextBlack)
 
             let days = HeatmapService.generateHeatmap(from: entries, days: 30)
             HeatmapGridView(days: days, columns: 7, animated: false)
@@ -228,7 +243,7 @@ struct AccountabilityView: View {
         ZStack {
             Color.black.opacity(0.4).ignoresSafeArea()
 
-            VStack(spacing: DS.Spacing.md) {
+            VStack(spacing: 12) {
                 PatchiWithBubble(
                     expression: .happy,
                     text: "C'est noté. Reviens demain.",
@@ -236,7 +251,7 @@ struct AccountabilityView: View {
                 )
 
                 Text("Touche pour fermer")
-                    .font(.system(size: DS.Font.caption))
+                    .font(.system(size: 13))
                     .foregroundStyle(.white.opacity(0.5))
             }
         }
@@ -261,15 +276,17 @@ private struct ReasonButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: DS.Font.body, weight: .medium))
+                .font(.system(size: 17, weight: .medium))
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, DS.Spacing.md)
-                .background(isSelected ? color.opacity(0.15) : Color.dsCard)
-                .foregroundStyle(isSelected ? color : Color.dsTextPrimary)
-                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.chip, style: .continuous))
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(isSelected ? color.opacity(0.2) : Color.mdBgSubtle)
+                )
+                .foregroundStyle(isSelected ? color : Color.mdTextBlack)
                 .overlay {
-                    RoundedRectangle(cornerRadius: DS.Radius.chip, style: .continuous)
-                        .strokeBorder(isSelected ? color : .clear, lineWidth: 2)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(isSelected ? color : Color.mdBorder, lineWidth: isSelected ? 2 : 1)
                 }
         }
         .buttonStyle(SpringPressStyle())

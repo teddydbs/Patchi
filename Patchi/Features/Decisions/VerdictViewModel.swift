@@ -18,7 +18,7 @@ final class VerdictViewModel {
     func saveVerdict(decision: Decision, verdictType: DecisionReminderType) {
         guard !isSaved else { return }
         guard let verdict = selectedVerdict else { return }
-        let text = whatHappened.trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = whatHappened.trimmed
 
         if verdictType == .j30 {
             decision.verdict30 = verdict

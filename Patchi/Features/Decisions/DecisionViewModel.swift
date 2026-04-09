@@ -19,9 +19,7 @@ final class DecisionViewModel {
     // MARK: - Computed
 
     var canSave: Bool {
-        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !context.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !decision.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !title.isBlank && !context.isBlank && !decision.isBlank
     }
 
     // MARK: - Actions
@@ -29,10 +27,10 @@ final class DecisionViewModel {
     func save(context modelContext: ModelContext) {
         Haptics.success()
         let newDecision = Decision(
-            title: title.trimmingCharacters(in: .whitespacesAndNewlines),
-            context: context.trimmingCharacters(in: .whitespacesAndNewlines),
-            prediction: prediction.trimmingCharacters(in: .whitespacesAndNewlines),
-            decision: decision.trimmingCharacters(in: .whitespacesAndNewlines),
+            title: title.trimmed,
+            context: context.trimmed,
+            prediction: prediction.trimmed,
+            decision: decision.trimmed,
             importance: importance,
             confidence: prediction.isEmpty ? nil : confidence
         )

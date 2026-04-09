@@ -29,7 +29,7 @@ final class CheckInIntegrationTests: XCTestCase {
         let vm = CheckInViewModel()
         vm.moodScore = 4
         vm.selectedActivities = [.sport, .nature]
-        vm.selectedEmotions = [.heureux, .bien]
+        vm.selectedEmotions = [.heureux, .serein]
         vm.title = "Belle journée"
         vm.note = "J'ai couru dans la forêt"
 
@@ -46,7 +46,7 @@ final class CheckInIntegrationTests: XCTestCase {
         XCTAssertEqual(saved.title, "Belle journée")
         XCTAssertEqual(saved.note, "J'ai couru dans la forêt")
         XCTAssertEqual(saved.activities, [.sport, .nature])
-        XCTAssertEqual(saved.emotions, [.heureux, .bien])
+        XCTAssertEqual(saved.emotions, [.heureux, .serein])
         XCTAssertFalse(saved.isVoiceEntry)
         XCTAssertTrue(vm.isCompleted)
     }

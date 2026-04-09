@@ -39,6 +39,8 @@ enum PillButtonStyle {
     case secondary
     case mood(Int)
     case destructive
+    /// CTA noir plat pour les sheets d'onboarding (ex: FirstNameFallbackView).
+    case dark
 
     var foregroundColor: Color {
         switch self {
@@ -46,6 +48,7 @@ enum PillButtonStyle {
         case .secondary: .dsTextPrimary
         case .mood(let score): Color.moodText(score: score)
         case .destructive: .white
+        case .dark: .white
         }
     }
 
@@ -55,6 +58,7 @@ enum PillButtonStyle {
         case .secondary: .black
         case .mood(let score): Color.mood(score: score)
         case .destructive: .dsDestructive
+        case .dark: .black
         }
     }
 
@@ -73,6 +77,8 @@ enum PillButtonStyle {
             Color.mood(score: score)
         case .destructive:
             Color.dsDestructive
+        case .dark:
+            Color.mdTextBlack
         }
     }
 }

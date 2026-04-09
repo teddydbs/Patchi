@@ -19,9 +19,7 @@ final class AccountabilityViewModel {
 
     // MARK: - Computed
 
-    var canSave: Bool {
-        !missedAction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
+    var canSave: Bool { !missedAction.isBlank }
 
     var heatmapColor: HeatmapColor {
         guard let valid = isReasonValid else { return .orange }
@@ -37,8 +35,8 @@ final class AccountabilityViewModel {
     /// Sauvegarde une entrée accountability normale
     func save(context: ModelContext) {
         let entry = AccountabilityEntry(
-            missedAction: missedAction.trimmingCharacters(in: .whitespacesAndNewlines),
-            reason: reason.isEmpty ? nil : reason.trimmingCharacters(in: .whitespacesAndNewlines),
+            missedAction: missedAction.trimmed,
+            reason: reason.isEmpty ? nil : reason.trimmed,
             isReasonValid: isReasonValid,
             importance: importance,
             heatmapColor: heatmapColor
@@ -61,7 +59,7 @@ final class AccountabilityViewModel {
         guard let yesterday = yesterdayDate else { return }
         let entry = AccountabilityEntry(
             date: yesterday,
-            missedAction: missedAction.trimmingCharacters(in: .whitespacesAndNewlines),
+            missedAction: missedAction.trimmed,
             reason: reason.isEmpty ? nil : reason,
             isReasonValid: isReasonValid,
             importance: importance,

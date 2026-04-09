@@ -13,7 +13,7 @@ enum JournalEntryType: String, CaseIterable, Identifiable {
         switch self {
         case .checkIn: "Check-in"
         case .accountability: "Accountability"
-        case .decision: "Décision"
+        case .decision: "Decision"
         case .letter: "Lettre"
         }
     }
@@ -29,11 +29,24 @@ enum JournalEntryType: String, CaseIterable, Identifiable {
 
     var color: Color {
         switch self {
-        case .checkIn: .accentPurple
-        case .accountability: .dsSuccess
-        case .decision: .accentAmber
-        case .letter: .patchiOrange
+        case .checkIn: .mdPurple
+        case .accountability: .mdGreen
+        case .decision: .mdYellow
+        case .letter: .mdOrange
         }
+    }
+}
+
+// MARK: - Mood Image Helper
+
+private func moodImageName(score: Int) -> String {
+    switch score {
+    case 5: return "emotion_heureux"
+    case 4: return "emotion_serein"
+    case 3: return "emotion_nostalgique"
+    case 2: return "emotion_triste"
+    case 1: return "emotion_seul"
+    default: return "emotion_serein"
     }
 }
 
@@ -43,72 +56,71 @@ struct CheckInCardView: View {
     let checkIn: CheckIn
 
     var body: some View {
-        ClayCard(tint: Color.mood(score: checkIn.moodScore)) {
-            HStack(spacing: 14) {
-                // Mood circle
-                ZStack {
-                    Circle()
-                        .fill(Color.mood(score: checkIn.moodScore))
-                        .frame(width: 40, height: 40)
-                    Text("\(checkIn.moodScore)")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.moodText(score: checkIn.moodScore))
+        HStack(spacing: 14) {
+            // Mood Patchi image
+            Image(moodImageName(score: checkIn.moodScore))
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 44, height: 44)
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Label("Check-in", systemImage: "face.smiling")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.mdTextGray)
+                    Spacer()
+                    Text(checkIn.date.formattedShort)
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.mdTextLight)
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Label("Check-in", systemImage: "face.smiling")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(Color.dsTextSecondary)
-                        Spacer()
-                        Text(checkIn.date.formattedShort)
-                            .font(.system(size: 11))
-                            .foregroundStyle(Color.dsTextSecondary)
-                    }
+                if let title = checkIn.title, !title.isEmpty {
+                    Text(title)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Color.mdTextBlack)
+                } else {
+                    Text("Humeur : \(checkIn.moodScore)/5")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Color.mdTextBlack)
+                }
 
-                    if let title = checkIn.title, !title.isEmpty {
-                        Text(title)
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(Color.dsTextPrimary)
-                    } else {
-                        Text("Humeur : \(checkIn.moodScore)/5")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(Color.dsTextPrimary)
-                    }
-
-                    if !checkIn.activities.isEmpty {
-                        HStack(spacing: 4) {
-                            ForEach(checkIn.activities.prefix(5)) { activity in
-                                Image(systemName: activity.icon)
-                                    .font(.caption2)
-                                    .foregroundStyle(Color.dsTextSecondary)
-                            }
-                            if checkIn.activities.count > 5 {
-                                Text("+\(checkIn.activities.count - 5)")
-                                    .font(.caption2)
-                                    .foregroundStyle(Color.dsTextSecondary)
-                            }
+                if !checkIn.activities.isEmpty {
+                    HStack(spacing: 4) {
+                        ForEach(checkIn.activities.prefix(5)) { activity in
+                            Image(systemName: activity.icon)
+                                .font(.caption2)
+                                .foregroundStyle(Color.mdTextGray)
+                        }
+                        if checkIn.activities.count > 5 {
+                            Text("+\(checkIn.activities.count - 5)")
+                                .font(.caption2)
+                                .foregroundStyle(Color.mdTextGray)
                         }
                     }
-
-                    if let reformulation = checkIn.reformulation {
-                        Text(reformulation)
-                            .font(.patchiBody(13))
-                            .italic()
-                            .foregroundStyle(Color.dsTextSecondary)
-                            .lineLimit(1)
-                    }
                 }
 
-                if let photoData = checkIn.photoData, let uiImage = UIImage(data: photoData) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 44, height: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.chip / 2, style: .continuous))
+                if let reformulation = checkIn.reformulation {
+                    Text(reformulation)
+                        .font(.system(size: 13, weight: .medium))
+                        .italic()
+                        .foregroundStyle(Color.mdTextGray)
+                        .lineLimit(1)
                 }
             }
+
+            if let photoData = checkIn.photoData, let uiImage = UIImage(data: photoData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 44, height: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
         }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color.moodVivid(checkIn.moodScore).opacity(0.15))
+        )
     }
 }
 
@@ -118,53 +130,58 @@ struct DecisionCardView: View {
     let decision: Decision
 
     var body: some View {
-        ClayCard(tint: .accentPurple) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Label("Décision", systemImage: "arrow.triangle.branch")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color.dsTextSecondary)
-                    Spacer()
-                    StatusBadge(status: decision.status)
-                }
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Label("Decision", systemImage: "arrow.triangle.branch")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.mdTextGray)
+                Spacer()
+                StatusBadge(status: decision.status)
+            }
 
-                Text(decision.title)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.dsTextPrimary)
+            Text(decision.title)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(Color.mdTextBlack)
 
-                HStack(spacing: 4) {
-                    ForEach(0..<decision.importance, id: \.self) { _ in
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 8))
-                            .foregroundStyle(Color.accentAmber)
-                    }
-                    Spacer()
-                    Text(decision.createdAt.formattedShort)
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color.dsTextSecondary)
+            HStack(spacing: 4) {
+                ForEach(0..<decision.importance, id: \.self) { _ in
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 8))
+                        .foregroundStyle(Color.mdYellow)
                 }
+                Spacer()
+                Text(decision.createdAt.formattedShort)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.mdTextLight)
             }
         }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color.mdPurpleBg)
+        )
     }
 }
+
+// MARK: - Status Badge
 
 private struct StatusBadge: View {
     let status: DecisionStatus
 
     var body: some View {
         Text(status.displayName)
-            .font(.system(size: 10, weight: .semibold))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
+            .font(.system(size: 10, weight: .bold))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
             .background(Capsule(style: .continuous).fill(badgeColor.opacity(0.15)))
             .foregroundStyle(badgeColor)
     }
 
     private var badgeColor: Color {
         switch status {
-        case .pending: .accentAmber
-        case .reviewed30: .accentPurple
-        case .reviewed90: .dsSuccess
+        case .pending: .mdYellow
+        case .reviewed30: .mdPurple
+        case .reviewed90: .mdGreen
         }
     }
 }
@@ -175,36 +192,39 @@ struct AccountabilityCardView: View {
     let entry: AccountabilityEntry
 
     var body: some View {
-        ClayCard(tint: .dsSuccess) {
-            HStack(spacing: 14) {
-                Circle()
-                    .fill(entry.heatmapColor.color)
-                    .frame(width: 12, height: 12)
+        HStack(spacing: 14) {
+            Circle()
+                .fill(entry.heatmapColor.color)
+                .frame(width: 12, height: 12)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Label("Accountability", systemImage: "checkmark.square")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(Color.dsTextSecondary)
-                        Spacer()
-                        Text(entry.date.formattedShort)
-                            .font(.system(size: 11))
-                            .foregroundStyle(Color.dsTextSecondary)
-                    }
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Label("Accountability", systemImage: "checkmark.square")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.mdTextGray)
+                    Spacer()
+                    Text(entry.date.formattedShort)
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.mdTextLight)
+                }
 
-                    if entry.isSkipped {
-                        Text("Tout allait bien")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(Color.dsSuccess)
-                    } else {
-                        Text(entry.missedAction)
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(Color.dsTextPrimary)
-                            .lineLimit(2)
-                    }
+                if entry.isSkipped {
+                    Text("Tout allait bien")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Color.mdGreen)
+                } else {
+                    Text(entry.missedAction)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Color.mdTextBlack)
+                        .lineLimit(2)
                 }
             }
         }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color.mdGreenBg)
+        )
     }
 }
 
@@ -214,39 +234,42 @@ struct LetterCardView: View {
     let letter: FutureLetter
 
     var body: some View {
-        ClayCard(tint: .patchiOrange) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Label("Lettre", systemImage: "envelope.fill")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color.dsTextSecondary)
-                    Spacer()
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Label("Lettre", systemImage: "envelope.fill")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.mdTextGray)
+                Spacer()
 
-                    if letter.isDelivered {
-                        Text("Livree")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(Color.dsSuccess)
-                    } else if letter.deliverAt.daysSinceNow > 0 {
-                        Text("Dans \(letter.deliverAt.daysSinceNow)j")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(Color.accentAmber)
-                    } else {
-                        Text("Prête")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(Color.dsSuccess)
-                    }
+                if letter.isDelivered {
+                    Text("Livree")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(Color.mdGreen)
+                } else if letter.deliverAt.daysSinceNow > 0 {
+                    Text("Dans \(letter.deliverAt.daysSinceNow)j")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(Color.mdYellow)
+                } else {
+                    Text("Prete")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(Color.mdGreen)
                 }
-
-                Text(letter.isDelivered ? letter.content : "Lettre scellée")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.dsTextPrimary)
-                    .lineLimit(2)
-                    .redacted(reason: letter.isDelivered ? [] : .placeholder)
-
-                Text("Écrite le \(letter.writtenAt.formattedShort)")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.dsTextSecondary)
             }
+
+            Text(letter.isDelivered ? letter.content : "Lettre scellee")
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(Color.mdTextBlack)
+                .lineLimit(2)
+                .redacted(reason: letter.isDelivered ? [] : .placeholder)
+
+            Text("Ecrite le \(letter.writtenAt.formattedShort)")
+                .font(.system(size: 11))
+                .foregroundStyle(Color.mdTextLight)
         }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color.mdOrangeBg)
+        )
     }
 }

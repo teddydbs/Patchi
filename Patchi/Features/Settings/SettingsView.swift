@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AuthenticationServices
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
@@ -10,6 +11,8 @@ struct SettingsView: View {
     @State private var biometricService = BiometricService.shared
     @State private var storeKit = StoreKitService.shared
     @State private var showPremium = false
+    @State private var showDeleteAccountConfirm = false
+    @State private var deleteAccountError: String?
 
     private var user: User? { users.first }
 
@@ -38,6 +41,26 @@ struct SettingsView: View {
             .sheet(isPresented: $showPremium) {
                 PremiumView()
             }
+            .confirmationDialog(
+                "Supprimer définitivement ton compte ?",
+                isPresented: $showDeleteAccountConfirm,
+                titleVisibility: .visible
+            ) {
+                Button("Supprimer mon compte", role: .destructive) {
+                    Task { await deleteAccount() }
+                }
+                Button("Annuler", role: .cancel) { }
+            } message: {
+                Text("Cette action est irréversible. Tous tes check-ins, décisions, lettres et accountability seront supprimés. Ton compte ne pourra pas être récupéré.")
+            }
+            .alert("Erreur", isPresented: Binding(
+                get: { deleteAccountError != nil },
+                set: { if !$0 { deleteAccountError = nil } }
+            )) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(deleteAccountError ?? "")
+            }
         }
     }
 
@@ -49,7 +72,7 @@ struct SettingsView: View {
                 HStack {
                     Image(systemName: "person.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Color.mdGreen)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(user?.firstName ?? "Utilisateur")
                             .fontWeight(.medium)
@@ -62,12 +85,66 @@ struct SettingsView: View {
                 }
 
                 Button("Se déconnecter", role: .destructive) {
-                    authService.signOut()
+                    Task {
+                        await fullSignOut()
+                    }
+                }
+
+                Button("Supprimer mon compte", role: .destructive) {
+                    showDeleteAccountConfirm = true
                 }
             } else {
-                AppleSignInButton()
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                // Bouton natif Sign in with Apple — backed by Supabase Auth.
+                // Pour le vrai flow avec nonce, utiliser le loginStep de l'onboarding.
+                SignInWithAppleButton(.signIn) { request in
+                    request.requestedScopes = [.fullName, .email]
+                } onCompletion: { _ in
+                    // L'utilisateur devrait normalement passer par l'onboarding.
+                    // Depuis les Settings, ce bouton est juste un fallback.
+                }
+                .signInWithAppleButtonStyle(.black)
+                .frame(height: 50)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
             }
+        }
+    }
+
+    // MARK: - Sign out (full clean)
+
+    /// Déconnexion complète : Supabase + SwiftData + AppState.
+    /// L'utilisateur est ramené à l'onboarding au prochain lancement.
+    private func fullSignOut() async {
+        // 1. Sign out Supabase (clear keychain session)
+        try? await authService.signOut()
+
+        // 2. Clean local data + reset AppState
+        await cleanLocalUserData()
+    }
+
+    /// Suppression définitive du compte : appelle la RPC Supabase
+    /// `delete_account()` (cascade delete sur toutes les tables user-owned)
+    /// puis clean le local et ramène l'utilisateur à l'onboarding.
+    private func deleteAccount() async {
+        do {
+            try await authService.deleteAccount()
+            await cleanLocalUserData()
+        } catch {
+            await MainActor.run {
+                deleteAccountError = AuthService.friendlyMessage(for: error)
+            }
+        }
+    }
+
+    /// Nettoyage du cache local après signOut ou deleteAccount.
+    /// Supprime tous les Users SwiftData et reset `AppState.isOnboardingCompleted`.
+    private func cleanLocalUserData() async {
+        await MainActor.run {
+            for u in users {
+                modelContext.delete(u)
+            }
+            try? modelContext.save()
+            appState.isOnboardingCompleted = false
         }
     }
 
@@ -140,11 +217,11 @@ struct SettingsView: View {
             if appState.isPremium {
                 HStack {
                     Label("Patchi Premium", systemImage: "crown.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Color.mdYellow)
                     Spacer()
                     Text("Actif")
                         .font(.caption)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(Color.mdGreen)
                         .fontWeight(.medium)
                 }
             } else {
@@ -153,7 +230,7 @@ struct SettingsView: View {
                 } label: {
                     HStack {
                         Label("Découvrir Premium", systemImage: "crown.fill")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Color.mdYellow)
                         Spacer()
                         Image(systemName: "chevron.right")
                             .font(.caption)
@@ -195,8 +272,8 @@ struct SettingsView: View {
             .font(.system(size: 10, weight: .medium))
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
-            .background(Capsule().fill(Color.orange.opacity(0.15)))
-            .foregroundStyle(.orange)
+            .background(Capsule().fill(Color.mdGreenBg))
+            .foregroundStyle(Color.mdGreen)
     }
 }
 
@@ -225,7 +302,7 @@ struct NotificationSettingsView: View {
                             in: 6...22,
                             step: 1
                         )
-                        .tint(.orange)
+                        .tint(Color.mdGreen)
 
                         HStack {
                             Text("Fin")
@@ -241,7 +318,7 @@ struct NotificationSettingsView: View {
                             in: Double(user.notificationStartHour + 1)...23,
                             step: 1
                         )
-                        .tint(.orange)
+                        .tint(Color.mdGreen)
                     }
                 }
             }

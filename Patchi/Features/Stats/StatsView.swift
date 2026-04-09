@@ -13,14 +13,22 @@ struct StatsView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.dsBackground.ignoresSafeArea()
+                Color.mdBg.ignoresSafeArea()
 
                 if checkIns.count < 3 {
-                    // Écran de déblocage — comme Reflectly
                     unlockScreen
                 } else {
                     ScrollView {
-                        VStack(spacing: DS.Spacing.xl) {
+                        VStack(spacing: 24) {
+                            // Custom header
+                            HStack {
+                                Text("Stats")
+                                    .font(.system(size: 34, weight: .heavy, design: .rounded))
+                                    .foregroundStyle(Color.mdTextBlack)
+                                Spacer()
+                            }
+                            .padding(.top, 8)
+
                             if let countdown = viewModel.countdown(totalCheckIns: checkIns.count) {
                                 CountdownCard(message: countdown.message, remaining: countdown.remaining)
                             }
@@ -31,40 +39,43 @@ struct StatsView: View {
                             heatmapSection
                             decisionStats
                         }
-                        .padding(DS.Spacing.lg)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 32)
                     }
                 }
             }
-            .navigationTitle("Stats")
-            .navigationBarTitleDisplayMode(.large)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
     // MARK: - Unlock Screen
 
     private var unlockScreen: some View {
-        VStack(spacing: DS.Spacing.xxl) {
+        VStack(spacing: 32) {
             Spacer()
 
-            PatchiView(expression: .curious, size: .hero, animated: false)
+            Image("emotion_heureux")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 120, height: 120)
 
             Text("\(max(0, 3 - checkIns.count))")
-                .font(.system(size: 56, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.patchiOrange)
+                .font(.system(size: 72, weight: .heavy, design: .rounded))
+                .foregroundStyle(Color.mdOrange)
 
-            Text("check-ins avant de débloquer\ntes premières stats")
-                .font(.system(size: DS.Font.body, weight: .medium))
-                .foregroundStyle(Color.dsTextSecondary)
+            Text("check-ins avant de debloquer\ntes premieres stats")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Color.mdTextGray)
                 .multilineTextAlignment(.center)
 
-            Text("Patchi apprend encore à te connaître.\nReviens après quelques check-ins !")
-                .font(.system(size: DS.Font.caption))
-                .foregroundStyle(Color.dsTextSecondary.opacity(0.7))
+            Text("Patchi apprend encore a te connaitre.\nReviens apres quelques check-ins !")
+                .font(.system(size: 14))
+                .foregroundStyle(Color.mdTextLight)
                 .multilineTextAlignment(.center)
 
             Spacer()
         }
-        .padding(DS.Spacing.lg)
+        .padding(.horizontal, 20)
     }
 
     // MARK: - Weekly Mood Chart
@@ -73,14 +84,14 @@ struct StatsView: View {
         let data = viewModel.weeklyMoods(from: checkIns)
         let hasData = data.contains { $0.averageScore > 0 }
 
-        return StatsCard(title: "Humeur — 7 derniers jours", icon: "chart.line.uptrend.xyaxis") {
+        return StatsCard(title: "Humeur — 7 derniers jours", icon: "chart.line.uptrend.xyaxis", bgColor: .mdGreenBg) {
             if hasData {
                 Chart(data) { entry in
                     LineMark(
                         x: .value("Jour", entry.date, unit: .day),
                         y: .value("Humeur", entry.averageScore)
                     )
-                    .foregroundStyle(Color.patchiOrange)
+                    .foregroundStyle(Color.mdGreen)
                     .interpolationMethod(.catmullRom)
 
                     AreaMark(
@@ -89,7 +100,7 @@ struct StatsView: View {
                     )
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [Color.patchiOrange.opacity(0.3), .clear],
+                            colors: [Color.mdGreen.opacity(0.3), .clear],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -115,14 +126,14 @@ struct StatsView: View {
         let data = viewModel.monthlyMoods(from: checkIns)
         let hasData = data.contains { $0.averageScore > 0 }
 
-        return StatsCard(title: "Humeur — 30 derniers jours", icon: "calendar") {
+        return StatsCard(title: "Humeur — 30 derniers jours", icon: "calendar", bgColor: .mdPurpleBg) {
             if hasData {
                 Chart(data) { entry in
                     LineMark(
                         x: .value("Jour", entry.date, unit: .day),
                         y: .value("Humeur", entry.averageScore)
                     )
-                    .foregroundStyle(Color.accentPurple)
+                    .foregroundStyle(Color.mdPurple)
                     .interpolationMethod(.catmullRom)
                 }
                 .chartYScale(domain: 0...5)
@@ -139,38 +150,41 @@ struct StatsView: View {
         let correlations = viewModel.correlations(from: checkIns)
         let insightPhrase = viewModel.insightPhrase(from: checkIns)
 
-        return StatsCard(title: "Corrélations", icon: "arrow.triangle.merge") {
-            VStack(alignment: .leading, spacing: DS.Spacing.md) {
+        return StatsCard(title: "Correlations", icon: "arrow.triangle.merge", bgColor: .mdYellowBg) {
+            VStack(alignment: .leading, spacing: 12) {
                 if let phrase = insightPhrase {
-                    HStack(spacing: DS.Spacing.sm) {
-                        PatchiView(expression: .proud, size: .small)
+                    HStack(spacing: 8) {
+                        Image("emotion_fiere")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28)
                         Text(phrase)
-                            .font(.patchiBody(15))
+                            .font(.system(size: 15, weight: .medium))
                             .italic()
-                            .foregroundStyle(Color.dsTextPrimary)
+                            .foregroundStyle(Color.mdTextBlack)
                     }
-                    .padding(.bottom, DS.Spacing.xs)
+                    .padding(.bottom, 4)
                 }
 
                 if correlations.isEmpty {
-                    Text("Pas encore assez de données pour les corrélations.")
-                        .font(.system(size: DS.Font.caption))
-                        .foregroundStyle(Color.dsTextSecondary)
+                    Text("Pas encore assez de donnees pour les correlations.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.mdTextGray)
                 } else {
                     ForEach(correlations.prefix(5)) { correlation in
                         HStack {
                             Image(systemName: correlation.activity.icon)
                                 .font(.caption)
                                 .frame(width: 20)
-                                .foregroundStyle(Color.dsTextSecondary)
+                                .foregroundStyle(Color.mdTextGray)
                             Text(correlation.activity.displayName)
-                                .font(.system(size: DS.Font.caption))
-                                .foregroundStyle(Color.dsTextPrimary)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color.mdTextBlack)
                             Spacer()
                             MoodDots(score: correlation.averageMood)
                             Text(String(format: "%.1f", correlation.averageMood))
-                                .font(.system(size: DS.Font.caption, weight: .semibold))
-                                .foregroundStyle(Color.dsTextSecondary)
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundStyle(Color.mdTextGray)
                         }
                     }
                 }
@@ -181,7 +195,7 @@ struct StatsView: View {
     // MARK: - Heatmap
 
     private var heatmapSection: some View {
-        StatsCard(title: "Accountability — 90 jours", icon: "square.grid.3x3.fill") {
+        StatsCard(title: "Accountability — 90 jours", icon: "square.grid.3x3.fill", bgColor: .mdBgSubtle) {
             let days = viewModel.heatmapDays(from: accountabilityEntries)
             HeatmapWithLegend(days: days, showStats: true)
         }
@@ -192,83 +206,120 @@ struct StatsView: View {
     private var decisionStats: some View {
         let counts = viewModel.decisionCounts(from: decisions)
 
-        return StatsCard(title: "Décisions", icon: "arrow.triangle.branch") {
-            HStack(spacing: DS.Spacing.xl) {
-                StatNumber(value: counts.total, label: "Total", color: .dsTextPrimary)
-                StatNumber(value: counts.pending, label: "En attente", color: .accentAmber)
-                StatNumber(value: counts.reviewed, label: "Reviewées", color: .dsSuccess)
+        return StatsCard(title: "Decisions", icon: "arrow.triangle.branch", bgColor: .mdBgSubtle) {
+            HStack(spacing: 0) {
+                StatNumber(value: counts.total, label: "Total", bgColor: .mdPurpleBg, textColor: .mdPurple)
+                Spacer()
+                StatNumber(value: counts.pending, label: "En attente", bgColor: .mdYellowBg, textColor: .mdYellow)
+                Spacer()
+                StatNumber(value: counts.reviewed, label: "Reviewees", bgColor: .mdGreenBg, textColor: .mdGreen)
             }
         }
     }
 
     private var emptyChartPlaceholder: some View {
-        VStack(spacing: DS.Spacing.sm) {
+        VStack(spacing: 10) {
             Image(systemName: "chart.line.uptrend.xyaxis")
                 .font(.title2)
-                .foregroundStyle(Color.dsTextSecondary.opacity(0.5))
-            Text("Pas encore assez de données")
-                .font(.system(size: DS.Font.caption))
-                .foregroundStyle(Color.dsTextSecondary)
+                .foregroundStyle(Color.mdTextLight)
+            Text("Pas encore assez de donnees")
+                .font(.system(size: 13))
+                .foregroundStyle(Color.mdTextGray)
         }
         .frame(height: 120)
         .frame(maxWidth: .infinity)
     }
 }
 
-// MARK: - Stats Card (Clay)
+// MARK: - Stats Card (Motion Design)
 
 private struct StatsCard<Content: View>: View {
     let title: String
     let icon: String
+    var bgColor: Color = .mdBgSubtle
     @ViewBuilder let content: Content
 
     var body: some View {
-        ClayCard {
-            VStack(alignment: .leading, spacing: DS.Spacing.md) {
-                Label(title, systemImage: icon)
-                    .font(.system(size: DS.Font.body, weight: .semibold))
-                    .foregroundStyle(Color.dsTextPrimary)
+        VStack(alignment: .leading, spacing: 14) {
+            Label(title, systemImage: icon)
+                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.mdTextBlack)
 
-                content
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            content
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(bgColor)
+        )
     }
 }
+
+// MARK: - Countdown Card
 
 private struct CountdownCard: View {
     let message: String
     let remaining: Int
 
-    var body: some View {
-        ClayCard(tint: .patchiOrange) {
-            HStack(spacing: DS.Spacing.md) {
-                PatchiView(expression: .curious, size: .small)
-                Text(message)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(Color.dsTextPrimary)
-                Spacer()
-            }
+    private func moodImageName(score: Int) -> String {
+        switch score {
+        case 5: return "emotion_heureux"
+        case 4: return "emotion_serein"
+        case 3: return "emotion_nostalgique"
+        case 2: return "emotion_triste"
+        case 1: return "emotion_seul"
+        default: return "emotion_serein"
         }
     }
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image("emotion_confus")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 40, height: 40)
+
+            Text(message)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.mdTextBlack)
+            Spacer()
+        }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color.mdOrangeBg)
+        )
+    }
 }
+
+// MARK: - Stat Number
 
 private struct StatNumber: View {
     let value: Int
     let label: String
-    let color: Color
+    var bgColor: Color = .mdBgSubtle
+    var textColor: Color = .mdTextBlack
 
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
             Text("\(value)")
-                .font(.system(size: 24, weight: .bold, design: .rounded))
-                .foregroundStyle(color)
+                .font(.system(size: 28, weight: .heavy, design: .rounded))
+                .foregroundStyle(textColor)
             Text(label)
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(Color.dsTextSecondary)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Color.mdTextGray)
         }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(bgColor)
+        )
     }
 }
+
+// MARK: - Mood Dots
 
 private struct MoodDots: View {
     let score: Double
@@ -277,7 +328,7 @@ private struct MoodDots: View {
         HStack(spacing: 2) {
             ForEach(1...5, id: \.self) { i in
                 Circle()
-                    .fill(Double(i) <= score ? Color.mood(score: Int(score.rounded())) : Color.dsBorder)
+                    .fill(Double(i) <= score ? Color.moodVivid(Int(score.rounded())) : Color.mdBorder)
                     .frame(width: 6, height: 6)
             }
         }

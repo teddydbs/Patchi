@@ -72,8 +72,39 @@ extension Color {
     /// Bordure subtile
     static let dsBorder = Color("dsBorder")
 
+    /// Lien bleu — boutons textuels type "Mot de passe oublié ?"
+    static let dsLink = Color(red: 0.26, green: 0.52, blue: 0.96)
+
     // MARK: Legacy aliases
 
     static let cardBackground = dsCard
     static let pageBackground = dsBackground
+
+    // MARK: Motion Design Tokens
+
+    static let mdBg = Color.white
+    static let mdBgSubtle = Color(red: 0.969, green: 0.969, blue: 0.961)
+    static let mdGreen = Color(red: 0.243, green: 0.788, blue: 0.384)
+    static let mdGreenBg = Color(red: 0.91, green: 0.976, blue: 0.929)
+    static let mdOrange = Color(red: 1.0, green: 0.549, blue: 0.259)
+    static let mdOrangeBg = Color(red: 1.0, green: 0.949, blue: 0.91)
+    static let mdPurple = Color(red: 0.486, green: 0.228, blue: 0.929)
+    static let mdPurpleBg = Color(red: 0.941, green: 0.925, blue: 0.988)
+    static let mdYellow = Color(red: 0.984, green: 0.749, blue: 0.141)
+    static let mdYellowBg = Color(red: 1.0, green: 0.969, blue: 0.886)
+    static let mdTextBlack = Color(red: 0.102, green: 0.102, blue: 0.102)
+    static let mdTextGray = Color(red: 0.533, green: 0.533, blue: 0.533)
+    static let mdTextLight = Color(red: 0.733, green: 0.733, blue: 0.733)
+    static let mdBorder = Color(red: 0.941, green: 0.941, blue: 0.933)
+
+    static func moodVivid(_ score: Int) -> Color {
+        switch score {
+        case 5: return Color(red: 0.984, green: 0.749, blue: 0.141)
+        case 4: return Color(red: 0.29, green: 0.871, blue: 0.502)
+        case 3: return Color(red: 0.91, green: 0.878, blue: 0.847)
+        case 2: return Color(red: 0.722, green: 0.604, blue: 0.91)
+        case 1: return Color(red: 0.506, green: 0.549, blue: 0.973)
+        default: return Color(red: 0.953, green: 0.953, blue: 0.945)
+        }
+    }
 }

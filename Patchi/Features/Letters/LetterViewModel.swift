@@ -12,13 +12,11 @@ final class LetterViewModel {
     var isOpened = false
     var replyText: String = ""
 
-    var canSeal: Bool {
-        content.trimmingCharacters(in: .whitespacesAndNewlines).count >= 10
-    }
+    var canSeal: Bool { content.trimmed.count >= 10 }
 
     func seal(context: ModelContext) {
         Haptics.success()
-        let letter = FutureLetter(content: content.trimmingCharacters(in: .whitespacesAndNewlines))
+        let letter = FutureLetter(content: content.trimmed)
         context.insert(letter)
 
         // Scheduler la notification 6 mois
@@ -32,7 +30,7 @@ final class LetterViewModel {
     }
 
     func reply(to letter: FutureLetter, context: ModelContext) {
-        let trimmed = replyText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = replyText.trimmed
         guard !trimmed.isEmpty else { return }
 
         // Sauvegarder la réponse sur la lettre originale

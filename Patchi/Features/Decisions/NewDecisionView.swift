@@ -8,10 +8,10 @@ struct NewDecisionView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.dsBackground.ignoresSafeArea()
+                Color.mdBg.ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: DS.Spacing.xl) {
+                    VStack(spacing: 24) {
                         PatchiWithBubble(
                             expression: .thinking,
                             text: "Quelle décision tu as prise ?",
@@ -46,16 +46,16 @@ struct NewDecisionView: View {
                         }
 
                         // Confiance (affiché si prédiction non vide)
-                        if !viewModel.prediction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+                        if !viewModel.prediction.isBlank {
+                            VStack(alignment: .leading, spacing: 8) {
                                 HStack {
                                     Text("Confiance")
-                                        .font(.system(size: DS.Font.body, weight: .semibold))
-                                        .foregroundStyle(Color.dsTextPrimary)
+                                        .font(.system(size: 17, weight: .semibold))
+                                        .foregroundStyle(Color.mdTextBlack)
                                     Spacer()
                                     Text("\(viewModel.confidence) %")
-                                        .font(.system(size: DS.Font.body, weight: .bold, design: .rounded))
-                                        .foregroundStyle(Color.patchiOrange)
+                                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                                        .foregroundStyle(Color.mdGreen)
                                 }
 
                                 Slider(
@@ -66,20 +66,20 @@ struct NewDecisionView: View {
                                     in: 50...99,
                                     step: 5
                                 )
-                                .tint(.patchiOrange)
+                                .tint(.mdGreen)
 
                                 Text("À quel point tu es sûr de ta prédiction ?")
-                                    .font(.system(size: DS.Font.caption))
-                                    .foregroundStyle(Color.dsTextSecondary)
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(Color.mdTextGray)
                             }
                         }
 
                         // Importance
-                        VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+                        VStack(alignment: .leading, spacing: 8) {
                             Text("Importance")
-                                .font(.system(size: DS.Font.body, weight: .semibold))
-                                .foregroundStyle(Color.dsTextPrimary)
-                            HStack(spacing: DS.Spacing.sm) {
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundStyle(Color.mdTextBlack)
+                            HStack(spacing: 8) {
                                 ForEach(1...5, id: \.self) { star in
                                     Button {
                                         viewModel.importance = star
@@ -87,7 +87,7 @@ struct NewDecisionView: View {
                                     } label: {
                                         Image(systemName: star <= viewModel.importance ? "star.fill" : "star")
                                             .font(.title3)
-                                            .foregroundStyle(star <= viewModel.importance ? Color.accentAmber : Color.dsBorder)
+                                            .foregroundStyle(star <= viewModel.importance ? Color.mdYellow : Color.mdBorder)
                                     }
                                     .buttonStyle(SpringPressStyle())
                                 }
@@ -95,15 +95,15 @@ struct NewDecisionView: View {
                         }
 
                         // Info rappels
-                        HStack(spacing: DS.Spacing.sm) {
+                        HStack(spacing: 8) {
                             Image(systemName: "bell.fill")
-                                .foregroundStyle(Color.patchiOrange)
+                                .foregroundStyle(Color.mdOrange)
                             Text("Patchi te rappellera dans 30 et 90 jours.")
-                                .font(.system(size: DS.Font.caption))
-                                .foregroundStyle(Color.dsTextSecondary)
+                                .font(.system(size: 13))
+                                .foregroundStyle(Color.mdTextGray)
                         }
                     }
-                    .padding(DS.Spacing.lg)
+                    .padding(20)
                 }
             }
             .navigationTitle("Nouvelle décision")
@@ -132,7 +132,7 @@ struct NewDecisionView: View {
         ZStack {
             Color.black.opacity(0.4).ignoresSafeArea()
 
-            VStack(spacing: DS.Spacing.xl) {
+            VStack(spacing: 24) {
                 PatchiWithBubble(
                     expression: .determined,
                     text: "C'est noté. On se revoit dans 30 jours.",
@@ -140,7 +140,7 @@ struct NewDecisionView: View {
                 )
 
                 Text("Touche pour fermer")
-                    .font(.system(size: DS.Font.caption))
+                    .font(.system(size: 13))
                     .foregroundStyle(.white.opacity(0.5))
             }
         }
@@ -161,10 +161,10 @@ private struct FormFieldDS<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DS.Spacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.system(size: DS.Font.body, weight: .semibold))
-                .foregroundStyle(Color.dsTextPrimary)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Color.mdTextBlack)
             content
         }
     }
@@ -173,28 +173,28 @@ private struct FormFieldDS<Content: View>: View {
 extension View {
     func dsTextField() -> some View {
         self
-            .padding(DS.Spacing.md)
+            .padding(12)
             .background(
-                RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous)
-                    .fill(Color.dsCard)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.mdBgSubtle)
             )
             .overlay {
-                RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous)
-                    .stroke(Color.dsBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.mdBorder, lineWidth: 1)
             }
     }
 
     func dsTextEditor() -> some View {
         self
-            .padding(DS.Spacing.sm)
+            .padding(8)
             .scrollContentBackground(.hidden)
             .background(
-                RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous)
-                    .fill(Color.dsCard)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.mdBgSubtle)
             )
             .overlay {
-                RoundedRectangle(cornerRadius: DS.Radius.input, style: .continuous)
-                    .stroke(Color.dsBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.mdBorder, lineWidth: 1)
             }
     }
 }

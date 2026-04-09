@@ -8,7 +8,7 @@ struct DecisionListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.dsBackground.ignoresSafeArea()
+                Color.mdBg.ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     filterBar
@@ -18,15 +18,15 @@ struct DecisionListView: View {
                         emptyState
                     } else {
                         ScrollView {
-                            LazyVStack(spacing: DS.Spacing.md) {
+                            LazyVStack(spacing: 12) {
                                 ForEach(filtered) { decision in
                                     DecisionRow(decision: decision) {
                                         viewModel.handleVerdictTap(for: decision)
                                     }
                                 }
                             }
-                            .padding(.horizontal, DS.Spacing.lg)
-                            .padding(.top, DS.Spacing.sm)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 8)
                         }
                     }
                 }
@@ -44,7 +44,7 @@ struct DecisionListView: View {
 
     private var filterBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: DS.Spacing.sm) {
+            HStack(spacing: 8) {
                 FilterChipDS(
                     label: "Toutes (\(decisions.count))",
                     isSelected: viewModel.selectedFilter == nil
@@ -62,30 +62,30 @@ struct DecisionListView: View {
                     }
                 }
             }
-            .padding(.horizontal, DS.Spacing.lg)
-            .padding(.vertical, DS.Spacing.sm)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 8)
         }
     }
 
     private var emptyState: some View {
-        VStack(spacing: DS.Spacing.md) {
+        VStack(spacing: 12) {
             Spacer()
             PatchiView(expression: .curious, size: .large)
             Text("Aucune décision enregistrée.")
-                .font(.system(size: DS.Font.body, weight: .medium))
-                .foregroundStyle(Color.dsTextSecondary)
+                .font(.system(size: 17, weight: .medium))
+                .foregroundStyle(Color.mdTextGray)
             Text("Appuie sur + pour en créer une.")
-                .font(.system(size: DS.Font.caption))
-                .foregroundStyle(Color.dsTextSecondary.opacity(0.7))
+                .font(.system(size: 13))
+                .foregroundStyle(Color.mdTextLight)
             Spacer()
         }
     }
 
     private func statusColor(_ status: DecisionStatus) -> Color {
         switch status {
-        case .pending: .accentAmber
-        case .reviewed30: .accentPurple
-        case .reviewed90: .dsSuccess
+        case .pending: .mdOrange
+        case .reviewed30: .mdPurple
+        case .reviewed90: .mdGreen
         }
     }
 }
@@ -97,68 +97,71 @@ private struct DecisionRow: View {
     let onVerdictTap: () -> Void
 
     var body: some View {
-        ClayCard {
-            VStack(alignment: .leading, spacing: DS.Spacing.sm) {
-                HStack {
-                    Text(decision.title)
-                        .font(.system(size: DS.Font.body, weight: .semibold))
-                        .foregroundStyle(Color.dsTextPrimary)
-                    Spacer()
-                    importanceStars
-                }
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(decision.title)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Color.mdTextBlack)
+                Spacer()
+                importanceStars
+            }
 
-                Text(decision.decision)
-                    .font(.system(size: 15))
-                    .foregroundStyle(Color.dsTextSecondary)
-                    .lineLimit(2)
+            Text(decision.decision)
+                .font(.system(size: 15))
+                .foregroundStyle(Color.mdTextGray)
+                .lineLimit(2)
 
-                HStack {
-                    StatusPill(status: decision.status)
-                    Spacer()
+            HStack {
+                StatusPill(status: decision.status)
+                Spacer()
 
-                    if decision.status == .pending {
-                        let daysToVerdict = decision.reviewAt30.daysSinceNow
-                        if daysToVerdict <= 0 {
-                            Button("Donner le verdict") {
-                                Haptics.medium()
-                                onVerdictTap()
-                            }
-                            .font(.system(size: DS.Font.caption, weight: .bold))
-                            .foregroundStyle(Color.patchiOrange)
-                        } else {
-                            Text("J-\(daysToVerdict)")
-                                .font(.system(size: DS.Font.caption, weight: .bold))
-                                .foregroundStyle(Color.accentAmber)
+                if decision.status == .pending {
+                    let daysToVerdict = decision.reviewAt30.daysSinceNow
+                    if daysToVerdict <= 0 {
+                        Button("Donner le verdict") {
+                            Haptics.medium()
+                            onVerdictTap()
                         }
-                    } else if decision.status == .reviewed30 {
-                        if let verdict = decision.verdict30 {
-                            Label(verdict.displayName, systemImage: verdict.icon)
-                                .font(.system(size: DS.Font.caption, weight: .medium))
-                                .foregroundStyle(verdictColor(verdict))
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(Color.mdOrange)
+                    } else {
+                        Text("J-\(daysToVerdict)")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(Color.mdOrange)
+                    }
+                } else if decision.status == .reviewed30 {
+                    if let verdict = decision.verdict30 {
+                        Label(verdict.displayName, systemImage: verdict.icon)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(verdictColor(verdict))
+                    }
+                    let daysTo90 = decision.reviewAt90.daysSinceNow
+                    if daysTo90 <= 0 {
+                        Button("Verdict J+90") {
+                            Haptics.medium()
+                            onVerdictTap()
                         }
-                        let daysTo90 = decision.reviewAt90.daysSinceNow
-                        if daysTo90 <= 0 {
-                            Button("Verdict J+90") {
-                                Haptics.medium()
-                                onVerdictTap()
-                            }
-                            .font(.system(size: DS.Font.caption, weight: .bold))
-                            .foregroundStyle(Color.accentPurple)
-                        }
-                    } else if decision.status == .reviewed90 {
-                        if let verdict = decision.verdict90 {
-                            Label(verdict.displayName, systemImage: verdict.icon)
-                                .font(.system(size: DS.Font.caption, weight: .medium))
-                                .foregroundStyle(verdictColor(verdict))
-                        }
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(Color.mdPurple)
+                    }
+                } else if decision.status == .reviewed90 {
+                    if let verdict = decision.verdict90 {
+                        Label(verdict.displayName, systemImage: verdict.icon)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(verdictColor(verdict))
                     }
                 }
-
-                Text(decision.createdAt.formattedShort)
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.dsTextSecondary.opacity(0.6))
             }
+
+            Text(decision.createdAt.formattedShort)
+                .font(.system(size: 11))
+                .foregroundStyle(Color.mdTextLight)
         }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color.mdBgSubtle)
+        )
     }
 
     private var importanceStars: some View {
@@ -166,16 +169,16 @@ private struct DecisionRow: View {
             ForEach(0..<decision.importance, id: \.self) { _ in
                 Image(systemName: "star.fill")
                     .font(.system(size: 8))
-                    .foregroundStyle(Color.accentAmber)
+                    .foregroundStyle(Color.mdYellow)
             }
         }
     }
 
     private func verdictColor(_ verdict: Verdict) -> Color {
         switch verdict {
-        case .right: .dsSuccess
-        case .partial: .accentAmber
-        case .wrong: .dsDestructive
+        case .right: .mdGreen
+        case .partial: .mdYellow
+        case .wrong: Color(red: 0.90, green: 0.30, blue: 0.30)
         }
     }
 }
@@ -190,15 +193,15 @@ private struct StatusPill: View {
             .font(.system(size: 10, weight: .semibold))
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(Capsule(style: .continuous).fill(pillColor.opacity(0.12)))
+            .background(Capsule(style: .continuous).fill(pillColor.opacity(0.15)))
             .foregroundStyle(pillColor)
     }
 
     private var pillColor: Color {
         switch status {
-        case .pending: .accentAmber
-        case .reviewed30: .accentPurple
-        case .reviewed90: .dsSuccess
+        case .pending: .mdOrange
+        case .reviewed30: .mdPurple
+        case .reviewed90: .mdGreen
         }
     }
 }

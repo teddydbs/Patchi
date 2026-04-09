@@ -14,16 +14,28 @@ struct JournalView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.dsBackground.ignoresSafeArea()
+                Color.mdBg.ignoresSafeArea()
 
                 VStack(spacing: 0) {
+                    // Custom header
+                    HStack {
+                        Text("Journal")
+                            .font(.system(size: 34, weight: .heavy, design: .rounded))
+                            .foregroundStyle(Color.mdTextBlack)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 12)
+
                     // Toggle mode
                     HStack {
                         FilterChipDS(
                             label: viewModel.showAllEntries ? "Par jour" : "Tout voir",
-                            isSelected: false
+                            isSelected: false,
+                            color: .mdGreen
                         ) {
-                            withAnimation(DS.Animation.micro) {
+                            withAnimation(.easeInOut(duration: 0.2)) {
                                 viewModel.showAllEntries.toggle()
                                 if viewModel.showAllEntries {
                                     viewModel.selectedDate = nil
@@ -32,10 +44,10 @@ struct JournalView: View {
                                 }
                             }
                         }
-                        .padding(.leading, DS.Spacing.lg)
+                        .padding(.leading, 20)
                         Spacer()
                     }
-                    .padding(.top, DS.Spacing.xs)
+                    .padding(.bottom, 6)
 
                     if !viewModel.showAllEntries {
                         CalendarStripView(
@@ -50,7 +62,7 @@ struct JournalView: View {
                                 letters: letters
                             )
                         )
-                        .padding(.vertical, DS.Spacing.sm)
+                        .padding(.vertical, 8)
                     }
 
                     countersRow
@@ -60,7 +72,7 @@ struct JournalView: View {
                         emptyState
                     } else {
                         ScrollView {
-                            LazyVStack(spacing: DS.Spacing.md) {
+                            LazyVStack(spacing: 14) {
                                 ForEach(filteredEntries, id: \.id) { entry in
                                     entryCard(for: entry)
                                         .contextMenu {
@@ -72,14 +84,13 @@ struct JournalView: View {
                                         }
                                 }
                             }
-                            .padding(.horizontal, DS.Spacing.lg)
-                            .padding(.vertical, DS.Spacing.md)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
                         }
                     }
                 }
             }
-            .navigationTitle("Journal")
-            .navigationBarTitleDisplayMode(.large)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
@@ -92,32 +103,35 @@ struct JournalView: View {
             decisions: decisions,
             letters: letters
         )
-        return HStack(spacing: DS.Spacing.xl) {
+        return HStack(spacing: 0) {
             CounterBadge(value: counts.reflections, label: "reflexions")
+            Spacer()
             CounterBadge(value: counts.checkIns, label: "check-ins")
+            Spacer()
             CounterBadge(value: counts.photos, label: "photos")
         }
-        .padding(.horizontal, DS.Spacing.lg)
-        .padding(.bottom, DS.Spacing.sm)
+        .padding(.horizontal, 32)
+        .padding(.bottom, 10)
     }
 
     // MARK: - Filters
 
     private var filterRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: DS.Spacing.sm) {
+            HStack(spacing: 8) {
                 ForEach(JournalViewModel.JournalFilter.allCases) { filter in
                     FilterChipDS(
                         label: filter.label,
-                        isSelected: viewModel.selectedFilter == filter
+                        isSelected: viewModel.selectedFilter == filter,
+                        color: .mdGreen
                     ) {
-                        withAnimation(DS.Animation.micro) {
+                        withAnimation(.easeInOut(duration: 0.2)) {
                             viewModel.selectedFilter = filter
                         }
                     }
                 }
             }
-            .padding(.horizontal, DS.Spacing.lg)
+            .padding(.horizontal, 20)
             .padding(.vertical, 6)
         }
     }
@@ -125,15 +139,18 @@ struct JournalView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: DS.Spacing.md) {
+        VStack(spacing: 14) {
             Spacer()
-            PatchiView(expression: .curious, size: .large)
+            Image("emotion_confus")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 80, height: 80)
             Text("Rien ici pour l'instant.")
-                .font(.system(size: DS.Font.body, weight: .medium))
-                .foregroundStyle(Color.dsTextSecondary)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Color.mdTextGray)
             Text("Fais ton premier check-in !")
-                .font(.system(size: DS.Font.caption))
-                .foregroundStyle(Color.dsTextSecondary.opacity(0.7))
+                .font(.system(size: 14))
+                .foregroundStyle(Color.mdTextLight)
             Spacer()
         }
     }
@@ -229,13 +246,13 @@ private struct CounterBadge: View {
     let label: String
 
     var body: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 4) {
             Text("\(value)")
-                .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.dsTextPrimary)
+                .font(.system(size: 28, weight: .heavy, design: .rounded))
+                .foregroundStyle(Color.mdTextBlack)
             Text(label)
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(Color.dsTextSecondary)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Color.mdTextGray)
         }
     }
 }
