@@ -49,12 +49,16 @@
     <string>Patchi utilise Face ID pour protéger ton journal.</string>
     <key>UIAppFonts</key>
     <array>
-        <string>Fonts/CrimsonPro-Regular.ttf</string>
-        <string>Fonts/CrimsonPro-Italic.ttf</string>
-        <string>Fonts/CrimsonPro-Medium.ttf</string>
-        <string>Fonts/CrimsonPro-MediumItalic.ttf</string>
-        <string>Fonts/CrimsonPro-SemiBold.ttf</string>
-        <string>Fonts/CrimsonPro-SemiBoldItalic.ttf</string>
+        <string>CrimsonPro-Regular.ttf</string>
+        <string>CrimsonPro-Italic.ttf</string>
+        <string>CrimsonPro-Medium.ttf</string>
+        <string>CrimsonPro-MediumItalic.ttf</string>
+        <string>CrimsonPro-SemiBold.ttf</string>
+        <string>CrimsonPro-SemiBoldItalic.ttf</string>
+        <string>ClashDisplay-Regular.otf</string>
+        <string>ClashDisplay-Medium.otf</string>
+        <string>ClashDisplay-Semibold.otf</string>
+        <string>ClashDisplay-Bold.otf</string>
     </array>
 </dict>
 </plist>

@@ -1,104 +1,434 @@
 import AuthenticationServices
-import SwiftUI
+import Foundation
+import Observation
+import OSLog
+import Supabase
 import SwiftData
 
+private let logger = Logger(subsystem: "com.patchi.app", category: "Auth")
+
+/// Service central d'authentification basé sur **Supabase Auth**.
+///
+/// Gère :
+/// - Sign in with Apple (via `signInWithIdToken` côté Supabase)
+/// - Email + mot de passe (sign up / sign in / reset)
+/// - Restauration de la session au lancement de l'app
+/// - Sync du profile `public.profiles` avec le `User` SwiftData local
+///
+/// Le service est un singleton `@Observable` : les vues peuvent s'abonner à
+/// `isSignedIn`, `currentUserId`, `currentFirstName` pour réagir automatiquement.
 @Observable
+@MainActor
 final class AuthService {
     static let shared = AuthService()
 
-    var isSignedIn = false
-    var userName: String?
-    var userEmail: String?
+    // MARK: - État observable
 
-    private let userIdentifierKey = "appleUserIdentifier"
+    /// Session d'authentification active. Unique source de vérité pour
+    /// `isSignedIn` / `currentUserId` / `currentEmail` — évite les bugs où
+    /// les 3 flags se désynchronisent entre eux.
+    private(set) var authSession: AuthSession?
+
+    /// Profil récupéré depuis la table `public.profiles`. `nil` tant que le
+    /// fetch post-login n'a pas eu lieu (ou a échoué).
+    private(set) var profile: ProfileState?
+
+    /// `true` si une session Supabase est active.
+    var isSignedIn: Bool { authSession != nil }
+
+    /// UUID du user connecté.
+    var currentUserId: UUID? { authSession?.userId }
+
+    /// Email du user connecté.
+    var currentEmail: String? { authSession?.email }
+
+    /// Prénom lu depuis `profiles.first_name`. Chaîne vide si profil pas encore chargé.
+    var currentFirstName: String { profile?.firstName ?? "" }
+
+    /// Flag `profiles.onboarding_completed`. Utilisé par OnboardingView pour
+    /// bypasser les étapes restantes quand un user existant se reconnecte.
+    var currentProfileOnboardingCompleted: Bool { profile?.onboardingCompleted ?? false }
+
+    /// Erreur publique pour affichage dans l'UI (alert, etc.).
+    var lastError: String?
+
+    /// Indique qu'un flow d'auth est en cours (pour désactiver les boutons).
+    var isAuthenticating: Bool = false
+
+    // MARK: - Init
+
+    private let client = Supa.shared
 
     private init() {
-        checkExistingCredential()
+        Task { await self.bootstrap() }
     }
 
-    // MARK: - Handle Sign In Result
-
-    func handleSignIn(_ result: Result<ASAuthorization, Error>, context: ModelContext) {
-        switch result {
-        case .success(let authorization):
-            guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else { return }
-
-            let userIdentifier = credential.user
-            UserDefaults.standard.set(userIdentifier, forKey: userIdentifierKey)
-
-            // Récupérer le nom et l'email (disponibles uniquement au premier sign in)
-            let firstName = credential.fullName?.givenName
-            let email = credential.email
-
-            if let firstName {
-                userName = firstName
-            }
-            if let email {
-                userEmail = email
-            }
-
-            // Mettre à jour ou créer le User dans SwiftData
-            let descriptor = FetchDescriptor<User>()
-            if let existingUser = try? context.fetch(descriptor).first {
-                existingUser.appleUserIdentifier = userIdentifier
-                if let email { existingUser.email = email }
-            }
-
-            isSignedIn = true
-
-        case .failure(let error):
-            print("Sign in with Apple failed: \(error.localizedDescription)")
+    /// Le stream `authStateChanges` émet un événement `.initialSession` dès l'abonnement
+    /// avec la session persistée — inutile d'appeler `handleSessionChange` manuellement,
+    /// ça provoquerait un double fetch du profile au démarrage.
+    private func bootstrap() async {
+        for await (event, session) in await client.auth.authStateChanges {
+            await self.handleAuthEvent(event: event, session: session)
         }
     }
 
-    // MARK: - Check Existing Credential
-
-    func checkExistingCredential() {
-        guard let userIdentifier = UserDefaults.standard.string(forKey: userIdentifierKey) else {
-            isSignedIn = false
-            return
-        }
-
-        let provider = ASAuthorizationAppleIDProvider()
-        provider.getCredentialState(forUserID: userIdentifier) { [weak self] state, _ in
-            DispatchQueue.main.async {
-                switch state {
-                case .authorized:
-                    self?.isSignedIn = true
-                case .revoked, .notFound:
-                    self?.isSignedIn = false
-                    UserDefaults.standard.removeObject(forKey: self?.userIdentifierKey ?? "")
-                default:
-                    break
-                }
+    private func handleAuthEvent(event: AuthChangeEvent, session: Session?) async {
+        switch event {
+        case .initialSession, .signedIn, .userUpdated:
+            if let session {
+                await self.applySession(session, fetchProfile: true)
+            } else {
+                self.clearSessionState()
             }
+        case .tokenRefreshed:
+            // Le token a changé mais l'utilisateur est le même — on met à jour
+            // la session légère sans refetcher le profile (déjà en mémoire).
+            if let session {
+                self.authSession = AuthSession(from: session)
+            }
+        case .signedOut:
+            self.clearSessionState()
+        default:
+            break
         }
     }
 
-    // MARK: - Sign Out
+    private func clearSessionState() {
+        self.authSession = nil
+        self.profile = nil
+    }
 
-    func signOut() {
-        UserDefaults.standard.removeObject(forKey: userIdentifierKey)
-        isSignedIn = false
-        userName = nil
-        userEmail = nil
+    private func applySession(_ session: Session, fetchProfile: Bool) async {
+        self.authSession = AuthSession(from: session)
+
+        guard fetchProfile else { return }
+
+        // Le profile est auto-créé par le trigger `on_auth_user_created` ;
+        // juste après signup il peut ne pas exister encore — on réessaiera
+        // au prochain événement d'auth.
+        do {
+            let row: ProfileRow = try await client
+                .from("profiles")
+                .select()
+                .eq("id", value: session.user.id)
+                .single()
+                .execute()
+                .value
+            self.profile = ProfileState(
+                firstName: row.firstName,
+                onboardingCompleted: row.onboardingCompleted
+            )
+        } catch {
+            logger.warning("Could not fetch profile: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// Exécute une opération d'auth en gérant le flag `isAuthenticating`.
+    /// Centralise le pattern `true / defer { false }` qui était dupliqué sur
+    /// chaque méthode publique d'auth.
+    private func authenticating<T>(_ operation: () async throws -> T) async throws -> T {
+        isAuthenticating = true
+        defer { isAuthenticating = false }
+        return try await operation()
+    }
+
+    // MARK: - Sign in with Apple
+
+    /// Authentifie l'utilisateur auprès de Supabase à partir d'un
+    /// `ASAuthorizationAppleIDCredential` obtenu côté client.
+    ///
+    /// - Parameters:
+    ///   - credential: le credential retourné par `SignInWithAppleButton`
+    ///   - rawNonce: le nonce en clair passé à `ASAuthorizationAppleIDRequest`
+    ///     (Supabase vérifie que le hash correspond à celui dans l'id_token).
+    /// - Returns: le prénom extrait du credential (si fourni par Apple).
+    @discardableResult
+    func signInWithApple(
+        credential: ASAuthorizationAppleIDCredential,
+        rawNonce: String
+    ) async throws -> String? {
+        guard let identityTokenData = credential.identityToken,
+              let idToken = String(data: identityTokenData, encoding: .utf8) else {
+            throw AuthError.missingIdentityToken
+        }
+
+        try await authenticating {
+            _ = try await client.auth.signInWithIdToken(
+                credentials: OpenIDConnectCredentials(
+                    provider: .apple,
+                    idToken: idToken,
+                    nonce: rawNonce
+                )
+            )
+        }
+
+        let givenName = credential.fullName?.givenName?.trimmingCharacters(in: .whitespaces)
+
+        // Si Apple a fourni un prénom (1er sign-in), on le persiste dans le profile.
+        // updateProfile met à jour `self.profile` — pas besoin de le faire ici.
+        if let givenName, !givenName.isEmpty, let userId = currentUserId {
+            try await updateProfile(userId: userId, firstName: givenName)
+        }
+
+        return givenName?.isEmpty == false ? givenName : nil
+    }
+
+    // MARK: - Email + password
+
+    /// Crée un compte avec email + mot de passe. Le prénom est envoyé dans
+    /// `raw_user_meta_data` ce qui permet au trigger `handle_new_user` de
+    /// pré-remplir `profiles.first_name` automatiquement.
+    func signUpWithEmail(email: String, password: String, firstName: String) async throws {
+        try await authenticating {
+            _ = try await client.auth.signUp(
+                email: email,
+                password: password,
+                data: ["first_name": .string(firstName)]
+            )
+        }
+    }
+
+    /// Connecte un utilisateur existant avec email + mot de passe.
+    func signInWithEmail(email: String, password: String) async throws {
+        try await authenticating {
+            _ = try await client.auth.signIn(email: email, password: password)
+        }
+    }
+
+    /// Envoie un email de réinitialisation de mot de passe. Pas d'erreur si
+    /// l'email n'existe pas (protection anti-enumeration côté Supabase).
+    func resetPassword(email: String) async throws {
+        try await authenticating {
+            try await client.auth.resetPasswordForEmail(email)
+        }
+    }
+
+    // MARK: - Profile updates
+
+    /// Met à jour le prénom dans `profiles.first_name` (ex: fallback après
+    /// un Sign in with Apple qui n'a pas retourné le nom).
+    func updateProfile(userId: UUID, firstName: String) async throws {
+        try await client
+            .from("profiles")
+            .update(ProfilePatch(firstName: firstName))
+            .eq("id", value: userId)
+            .execute()
+
+        // Mise à jour optimiste de l'état local
+        profile = ProfileState(
+            firstName: firstName,
+            onboardingCompleted: profile?.onboardingCompleted ?? false
+        )
+    }
+
+    /// Marque le profil de l'utilisateur courant comme "onboarding terminé".
+    /// Appelé à la fin de `OnboardingViewModel.complete()` pour qu'un futur
+    /// re-login sur un autre device skip directement l'onboarding.
+    func markOnboardingCompleted() async throws {
+        guard let userId = currentUserId else {
+            throw AuthError.noSession
+        }
+        try await client
+            .from("profiles")
+            .update(ProfilePatch(onboardingCompleted: true))
+            .eq("id", value: userId)
+            .execute()
+
+        profile = ProfileState(
+            firstName: profile?.firstName ?? "",
+            onboardingCompleted: true
+        )
+    }
+
+    // MARK: - Friendly error messages
+
+    /// Mappe une erreur Supabase/réseau en message user-friendly en français.
+    ///
+    /// Dispatch en 3 couches, de la plus typée à la moins typée :
+    /// 1. `URLError` → problèmes réseau (reconnu par Foundation)
+    /// 2. `Supabase.AuthError` → erreurs d'auth typées, avec `ErrorCode` stable côté serveur
+    /// 3. Fallback générique — on ne montre JAMAIS le `localizedDescription` brut à l'user
+    ///    car il peut contenir des détails techniques non traduits.
+    static func friendlyMessage(for error: Error) -> String {
+        if let urlError = error as? URLError {
+            return message(for: urlError)
+        }
+
+        if let authError = error as? Supabase.AuthError {
+            return message(for: authError)
+        }
+
+        return "Une erreur est survenue. Réessaie dans un instant."
+    }
+
+    private static func message(for urlError: URLError) -> String {
+        switch urlError.code {
+        case .notConnectedToInternet,
+             .networkConnectionLost,
+             .dataNotAllowed,
+             .internationalRoamingOff:
+            return "Pas de connexion internet. Vérifie ton réseau."
+        case .timedOut:
+            return "La requête a pris trop de temps. Réessaie."
+        case .cannotFindHost,
+             .cannotConnectToHost,
+             .dnsLookupFailed,
+             .resourceUnavailable:
+            return "Impossible de joindre le serveur. Réessaie dans un instant."
+        default:
+            return "Problème de connexion. Vérifie ton réseau et réessaie."
+        }
+    }
+
+    private static func message(for authError: Supabase.AuthError) -> String {
+        switch authError {
+        case .sessionMissing:
+            return "Ta session a expiré. Reconnecte-toi."
+        case .weakPassword:
+            return "Mot de passe trop faible. Utilise au moins 6 caractères."
+        case let .api(_, errorCode, _, _):
+            return message(for: errorCode)
+        default:
+            return "Une erreur est survenue. Réessaie dans un instant."
+        }
+    }
+
+    /// Les `ErrorCode` sont stables côté serveur Supabase — sûrs pour matcher.
+    /// Source : https://github.com/supabase/auth/blob/master/internal/api/errorcodes.go
+    private static func message(for errorCode: Supabase.ErrorCode) -> String {
+        switch errorCode {
+        case .emailExists, .userAlreadyExists, .identityAlreadyExists:
+            return "Cet email est déjà utilisé. Essaie de te connecter à la place."
+        case .invalidCredentials:
+            return "Email ou mot de passe incorrect."
+        case .emailNotConfirmed:
+            return "Ton email n'est pas encore confirmé. Vérifie ta boîte mail."
+        case .weakPassword:
+            return "Mot de passe trop court (6 caractères minimum)."
+        case .userNotFound:
+            return "Aucun compte avec cet email. Crée-toi un compte."
+        case .overRequestRateLimit,
+             .overEmailSendRateLimit,
+             .overSMSSendRateLimit:
+            return "Trop de tentatives. Réessaie dans quelques minutes."
+        case .signupDisabled, .emailProviderDisabled:
+            return "La création de compte est temporairement désactivée."
+        case .userBanned:
+            return "Ce compte est suspendu. Contacte le support."
+        case .captchaFailed:
+            return "Captcha incorrect. Réessaie."
+        case .validationFailed, .badJSON:
+            return "Les informations saisies sont invalides."
+        case .otpExpired:
+            return "Le code a expiré. Demande-en un nouveau."
+        case .samePassword:
+            return "Ton nouveau mot de passe doit être différent de l'ancien."
+        default:
+            return "Une erreur est survenue. Réessaie dans un instant."
+        }
+    }
+
+    // MARK: - Sign out
+
+    func signOut() async throws {
+        try await client.auth.signOut()
+        // Le handler `authStateChanges` va automatiquement remettre l'état à 0.
+    }
+
+    // MARK: - Delete account (RGPD)
+
+    /// Supprime définitivement le compte de l'utilisateur courant via la RPC
+    /// Supabase `delete_account()` (migration 002). Cascade delete sur toutes
+    /// les tables user-owned (profiles, checkins, decisions, letters, accountability).
+    /// Après succès, l'utilisateur est déconnecté automatiquement.
+    func deleteAccount() async throws {
+        guard isSignedIn else {
+            throw AuthError.noSession
+        }
+        try await authenticating {
+            try await client.rpc("delete_account").execute()
+        }
+        // Le delete en cascade supprime auth.users → la session devient invalide.
+        // On force le sign out côté client pour déclencher l'event .signedOut.
+        try? await client.auth.signOut()
+    }
+
+    // MARK: - Errors
+
+    enum AuthError: LocalizedError {
+        case missingIdentityToken
+        case noSession
+
+        var errorDescription: String? {
+            switch self {
+            case .missingIdentityToken: return "Impossible de récupérer le token Apple."
+            case .noSession: return "Aucune session active."
+            }
+        }
     }
 }
 
-// MARK: - SwiftUI Sign In Button
+// MARK: - State types
 
-struct AppleSignInButton: View {
-    @Environment(\.modelContext) private var modelContext
-    @State private var authService = AuthService.shared
+/// Snapshot léger de la session Supabase. Découple AuthService des types
+/// Supabase et permet aux call sites d'accéder aux infos de session sans
+/// importer le SDK.
+struct AuthSession: Equatable {
+    let userId: UUID
+    let email: String?
 
-    var body: some View {
-        SignInWithAppleButton(.signIn) { request in
-            request.requestedScopes = [.fullName, .email]
-        } onCompletion: { result in
-            authService.handleSignIn(result, context: modelContext)
-        }
-        .signInWithAppleButtonStyle(.black)
-        .frame(height: 50)
-        .cornerRadius(12)
+    init(userId: UUID, email: String?) {
+        self.userId = userId
+        self.email = email
+    }
+
+    init(from session: Session) {
+        self.userId = session.user.id
+        self.email = session.user.email
+    }
+}
+
+/// État public du profil stocké dans `public.profiles`.
+struct ProfileState: Equatable {
+    let firstName: String
+    let onboardingCompleted: Bool
+}
+
+// MARK: - Profile DTOs (Supabase wire format)
+
+/// Row de `public.profiles` pour la désérialisation JSON (snake_case côté DB).
+private struct ProfileRow: Decodable {
+    let id: UUID
+    let firstName: String
+    let onboardingCompleted: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case firstName = "first_name"
+        case onboardingCompleted = "onboarding_completed"
+    }
+}
+
+/// Patch partiel de `public.profiles`. Les champs `nil` ne sont pas envoyés
+/// (grâce à la stratégie d'encoding par défaut de `JSONEncoder` qui skip
+/// les optionnels nil quand on les marque via `encodeIfPresent`).
+private struct ProfilePatch: Encodable {
+    let firstName: String?
+    let onboardingCompleted: Bool?
+
+    init(firstName: String? = nil, onboardingCompleted: Bool? = nil) {
+        self.firstName = firstName
+        self.onboardingCompleted = onboardingCompleted
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case firstName = "first_name"
+        case onboardingCompleted = "onboarding_completed"
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(firstName, forKey: .firstName)
+        try container.encodeIfPresent(onboardingCompleted, forKey: .onboardingCompleted)
     }
 }

@@ -1,11 +1,12 @@
-import SwiftUI
+import OSLog
 import SwiftData
+import SwiftUI
 
 @Observable
 final class OnboardingViewModel {
     enum Step: Int, CaseIterable {
-        case welcome          // 1. Patchi apparaît
-        case name             // 2. Prénom
+        case welcome          // 1. Pas sûr de ton humeur ?
+        case login            // 2. On fait connaissance ? (Apple / Google / Email)
         case firstQuestion    // 3. Première question
         case reformulation    // 4. Reformulation Patchi
         case firstSquare      // 5. Premier carré heatmap
@@ -16,6 +17,7 @@ final class OnboardingViewModel {
 
     var currentStep: Step = .welcome
     var firstName: String = ""
+    var email: String = ""
     var firstAnswer: String = ""
     var reformulationText: String = ""
     var notificationStartHour: Int = 19
@@ -29,8 +31,10 @@ final class OnboardingViewModel {
     var canGoNext: Bool {
         switch currentStep {
         case .welcome: true
-        case .name: !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        case .firstQuestion: !firstAnswer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        // login : le passage à l'étape suivante se fait via les boutons d'auth eux-mêmes
+        // (Apple / Google / Email), pas via le bouton "Suivant" générique.
+        case .login: true
+        case .firstQuestion: !firstAnswer.isBlank
         case .reformulation: true
         case .firstSquare: true
         case .reminders: true
@@ -58,11 +62,17 @@ final class OnboardingViewModel {
         // Réutiliser un User existant ou en créer un nouveau
         let existingUsers = (try? context.fetch(FetchDescriptor<User>())) ?? []
         let user: User
+        let cleanedName = firstName.trimmed
+        let cleanedEmail = email.trimmed
         if let existing = existingUsers.first {
             user = existing
-            user.firstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+            user.firstName = cleanedName
+            if !cleanedEmail.isEmpty { user.email = cleanedEmail }
         } else {
-            user = User(firstName: firstName.trimmingCharacters(in: .whitespacesAndNewlines))
+            user = User(
+                firstName: cleanedName,
+                email: cleanedEmail.isEmpty ? nil : cleanedEmail
+            )
             context.insert(user)
         }
         user.onboardingCompleted = true
@@ -78,6 +88,19 @@ final class OnboardingViewModel {
                 heatmapColor: .orange
             )
             context.insert(entry)
+        }
+
+        // Push onboarding_completed = true vers Supabase (permet au même user
+        // de skip l'onboarding sur un autre device lors d'un re-login).
+        // En cas d'échec réseau on log ; le flag local reste à true et sera
+        // resynchronisé via un retry au prochain lancement (cf. TODO).
+        Task { @MainActor in
+            do {
+                try await AuthService.shared.markOnboardingCompleted()
+            } catch {
+                Logger(subsystem: "com.patchi.app", category: "Onboarding")
+                    .error("Failed to sync onboarding_completed to Supabase: \(error.localizedDescription, privacy: .public)")
+            }
         }
 
         // Scheduler les notifications
