@@ -49,3 +49,6 @@ hist.md
 # Design references (local only)
 inspirations/
 mockups/
+
+# Supabase CLI temp
+supabase/.temp/
