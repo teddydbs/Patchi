@@ -29,7 +29,7 @@
 
 Patchi est un journal de vie intelligent pour iPhone, en français natif, qui combine journaling émotionnel quotidien, accountability personnel, et journal de décisions avec rappels à J+30 et J+90. L'app s'adresse aux francophones 25-40 ans en construction active de soi. Le marché francophone est actuellement non servi — Reflectly (13M utilisateurs) n'existe qu'en anglais. Patchi comble ce vide avec un produit supérieur pensé en français dès le premier mot, accompagné d'une mascotte attachante (Patchi, petite patate orange chibi).
 
-Modèle freemium : toutes les saisies gratuites, premium ~35€/an pour analyses avancées, historique illimité, widgets et sync cloud.
+Modèle freemium : toutes les saisies gratuites + sync Supabase entre devices gratuite, premium ~35€/an pour analyses avancées, historique illimité, widgets, thèmes, export, verrou biométrique.
 
 ---
 
@@ -545,10 +545,10 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 
 ---
 
-#### REQ-023: CloudKit sync premium
-**Description:** Synchronisation automatique chiffrée pour utilisateurs premium. Multi-appareils.
+#### REQ-023: Sync multi-device via Supabase
+**Description:** Synchronisation automatique entre tous les devices du même user via Supabase. Disponible gratuitement dès le MVP (car intrinsèque à l'architecture backend). Policies RLS garantissent que chaque user ne voit que ses données. Pull au refresh et push en arrière-plan après chaque écriture locale SwiftData.
 
-**Dependencies:** REQ-002, REQ-018
+**Dependencies:** REQ-002
 
 ---
 
@@ -585,12 +585,14 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 - Animations : 60fps constant
 
 ### Security
-- Données stockées localement via SwiftData (pas de serveur)
-- CloudKit chiffré (premium)
+- Cache local via SwiftData + source de vérité distante via Supabase
+- Postgres Row Level Security (RLS) : chaque user ne voit QUE ses propres données
+- Hosting EU (Frankfurt) — GDPR compliant
+- Connexions HTTPS chiffrées de bout en bout
+- Auth via Sign in with Apple, Google (planifié) et Email/password
 - Verrou biométrique Face ID / Touch ID (premium)
-- Sign in with Apple pour l'auth
-- Aucune donnée envoyée à des serveurs tiers
-- Pas d'IA, pas d'API externe
+- Mots de passe gérés par Supabase Auth (jamais stockés côté client)
+- Pas d'IA, pas d'API externe autre que Supabase et les providers d'auth
 
 ### Accessibility
 - VoiceOver support sur tous les écrans
@@ -629,24 +631,33 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 │  └── Settings (config + premium)         │
 ├─────────────────────────────────────────┤
 │  Services/                               │
+│  ├── SupabaseClient (singleton)          │
+│  ├── AuthService (Apple, Google, Email)  │
 │  ├── NotificationService                 │
 │  ├── SpeechService                       │
 │  ├── StoreKitService                     │
 │  ├── HeatmapService                      │
 │  ├── ReformulationService                │
 │  ├── InsightService                      │
-│  ├── BiometricService                    │
-│  └── CloudSyncService                    │
+│  └── BiometricService                    │
 ├─────────────────────────────────────────┤
-│  Models/ (@Model SwiftData)              │
+│  Models/ (@Model SwiftData = cache)      │
 │  ├── User                                │
 │  ├── CheckIn                             │
 │  ├── AccountabilityEntry                 │
 │  ├── Decision                            │
 │  └── FutureLetter                        │
 ├─────────────────────────────────────────┤
-│  SwiftData ModelContainer                │
-│  (local) ──── CloudKit (premium only)    │
+│  SwiftData (cache local offline-first)   │
+│         ↕ sync ↕                          │
+│  Supabase Postgres (source of truth)     │
+│  ├── auth.users (managed)                │
+│  ├── public.profiles                     │
+│  ├── public.checkins                     │
+│  ├── public.accountability_entries       │
+│  ├── public.decisions                    │
+│  └── public.future_letters               │
+│  + Row Level Security partout            │
 └─────────────────────────────────────────┘
 ```
 
@@ -695,10 +706,11 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 |--------|------------|
 | UI Framework | SwiftUI — iOS 17+ |
 | Language | Swift 5.9 |
-| Persistence | SwiftData — @Model |
-| Cloud sync | CloudKit (premium) |
+| Cache local | SwiftData — @Model |
+| Backend | **Supabase** (Postgres + Auth + Storage, EU hosting) |
+| Backend SDK | `supabase-swift` 2.43+ via SPM |
 | State | @Observable + @Environment |
-| Auth | AuthenticationServices |
+| Auth | AuthenticationServices (Apple) + Supabase Auth (Email + Google) |
 | Speech | SFSpeechRecognizer + AVFoundation |
 | Notifications | UserNotifications |
 | Monetisation | StoreKit 2 |
@@ -788,14 +800,13 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 
 ## Out of Scope
 
-1. **Android** — V2 après validation du concept iOS
+1. **Android** — V2 après validation du concept iOS (le backend Supabase facilitera le portage)
 2. **IA / LLM** — Pas dans le MVP. L'utilisateur est son propre juge.
 3. **iPad** — V2
 4. **Bilan annuel narratif** — V2
 5. **Widget iOS** — V1.1
-6. **CloudKit sync** — V1.1
-7. **Backend/serveur** — Tout est local-first avec SwiftData
-8. **Multi-langue** — Français uniquement pour le MVP
+6. **CloudKit** — Remplacé par Supabase (sync backend-driven)
+7. **Multi-langue** — Français uniquement pour le MVP
 
 ---
 
@@ -822,7 +833,9 @@ Les francophones qui veulent tenir un journal de vie ou tracker leurs décisions
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
 | Assets Patchi pas prêts à temps | Medium | High | Utiliser des placeholder SVG, intégrer les vrais assets plus tard |
-| SwiftData + CloudKit complexité | High | Medium | Commencer local-only, ajouter CloudKit en V1.1 |
+| Sync SwiftData ↔ Supabase conflicts | High | Medium | Offline-first avec `updated_at` merge par timestamp. Une seule source de vérité = Supabase. Au launch, pull tout au refresh. |
+| Coûts Supabase au-delà du free tier | Low | Medium | Free tier = 50k MAU + 500MB DB. Monitorer usage. Passer au Pro (25 €/mois) si besoin. |
+| Supabase down / incident | Low | High | Cache local SwiftData permet d'utiliser l'app en read-only pendant une panne. |
 | Reflectly sort une version française | Low | Critical | Lancer le MVP rapidement, se différencier par les décisions et l'accountability |
 | Rejet App Store | Low | High | Suivre les guidelines, essai sans CB, pas de dark patterns |
 | Performances heatmap 90 jours | Low | Medium | Optimiser les queries SwiftData, limiter les animations |

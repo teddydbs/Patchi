@@ -19,16 +19,18 @@ App iOS native en SwiftUI pour le journaling émotionnel, l'accountability perso
 |--------|------------|
 | UI Framework | SwiftUI — iOS 17+ |
 | Language | Swift 5.9 |
-| Persistence | SwiftData — @Model |
-| Cloud sync | CloudKit (premium only, V1.1) |
+| Cache local | SwiftData — @Model (offline-first) |
+| Backend | **Supabase** (Postgres + Auth + Storage, EU hosting) |
+| Backend SDK | `supabase-swift` 2.43+ via SPM |
 | State | @Observable + @Environment |
-| Auth | AuthenticationServices (Sign in with Apple) |
+| Auth | Sign in with Apple (natif) + Google (planifié) + Email/password — tous via Supabase Auth |
 | Speech | SFSpeechRecognizer + AVFoundation |
 | Notifications | UserNotifications |
 | Monetisation | StoreKit 2 |
 | Biometrie | LocalAuthentication |
 | Widget | WidgetKit + AppIntents (V1.1) |
 | Architecture | MVVM |
+| Animations | Lottie (lottie-ios via SPM) |
 | Build | XcodeGen |
 
 ## Architecture
@@ -49,18 +51,22 @@ Patchi/
 │   ├── Letters/
 │   ├── Quotes/
 │   └── Settings/
-├── Services/     → NotificationService, SpeechService, StoreKitService, HeatmapService,
-│                   ReformulationService, InsightService, BiometricService, CloudSyncService
+├── Services/     → SupabaseClient (singleton), AuthService (Apple/Email/Google),
+│                   NotificationService, SpeechService, StoreKitService, HeatmapService,
+│                   ReformulationService, InsightService, BiometricService
 ├── Components/   → Patchi/, HeatmapGrid/, MoodSlider/, VoiceInput/, PremiumGate/, CalendarStrip/
 ├── Extensions/   → Color+Mood, Date+Helpers, View+Transitions
-└── Resources/    → Localizable.strings, Assets.xcassets, Fonts/
+└── Resources/    → Localizable.strings, Assets.xcassets, Fonts/, Animations/
 ```
 
 ## Décisions clés
 
-- **Pas d'IA** — L'utilisateur est son propre juge. Zéro coût API, zéro dépendance externe.
-- **Local-first** — SwiftData pour tous. CloudKit uniquement pour premium.
-- **Français natif** — Tout en français, pas traduit. Patchi tutoie.
+- **Pas d'IA** — L'utilisateur est son propre juge. Zéro coût API.
+- **Backend Supabase** (depuis 2026-04-09) — Postgres + Auth + Storage, hosting EU (Frankfurt) pour GDPR. Cache local SwiftData reste pour offline-first.
+- **Row Level Security** — Chaque user ne voit QUE ses propres données via les policies Postgres. Sécurité enforced côté serveur, jamais côté client.
+- **3 méthodes d'auth** — Sign in with Apple, Google, Email/password — tous routés via Supabase Auth. Le `firstName` est récupéré du provider quand possible, sinon demandé via fallback.
+- **Bypass onboarding pour users existants** — `profiles.onboarding_completed` est lu après login ; si `true`, l'app skip toutes les étapes et file direct au Home.
+- **Français natif** — Tout en français, pas traduit. Tutoiement.
 - **Couleurs vives** — Palette saturée et énergique pour les couleurs d'humeur.
 - **Freemium** — Toutes les saisies gratuites, analyses avancées en premium (~35€/an).
 - **StoreKit 2** — Trial 7 jours sans CB via introductoryOffer.
@@ -93,10 +99,64 @@ task-master set-status --id=<id> --status=in-progress
 task-master set-status --id=<id> --status=done
 ```
 
+## Animations — Lottie
+
+**Dépendance:** `lottie-ios` via SPM (`https://github.com/airbnb/lottie-ios`)
+
+### Workflow
+1. Création dans **After Effects** (plugin Bodymovin) ou éditeur **LottieFiles.com**
+2. Export en `.lottie` (compressé) ou `.json`
+3. Fichiers placés dans `Patchi/Resources/Animations/`
+4. Intégration via `LottieView` en SwiftUI
+
+### Convention de nommage des fichiers
+```
+patchi_{état}_{variante}.lottie
+```
+Exemples : `patchi_idle_breathing.lottie`, `patchi_happy_bounce.lottie`, `patchi_sad_comfort.lottie`, `patchi_celebrate_confetti.lottie`
+
+### Animations Patchi prévues
+
+| État | Description | Usage |
+|------|-------------|-------|
+| `idle_breathing` | Respiration douce, yeux ouverts | État par défaut sur Home |
+| `happy_bounce` | Saut joyeux, yeux plissés | Check-in humeur 4-5 |
+| `sad_comfort` | Expression douce, câlin | Check-in humeur 1-2 |
+| `thinking` | Tête penchée, points de suspension | Pendant saisie/réflexion |
+| `celebrate_confetti` | Explosion de joie + confettis | Streak atteint, objectif complété |
+| `encourage` | Pouce levé, clin d'œil | Rappel de revenir, motivation |
+| `wave_hello` | Salut de la main | Onboarding, retour après absence |
+| `sleep` | Yeux fermés, Zzz | Mode nuit, inactivité |
+
+### Règles d'utilisation
+- **Transitions d'humeur** : morphing via segments d'animation (ex: frame 0-30 = idle → happy)
+- **Performance** : toujours utiliser `.loopMode(.loop)` pour idle, `.loopMode(.playOnce)` pour réactions
+- **Taille** : animations max 150KB chacune, 512x512pt de résolution
+- **Couleurs** : les couleurs de Patchi (orange #FF8C42) doivent être paramétrables via `ColorValueProvider` pour s'adapter au thème
+- **Spring natif** : garder `withAnimation(.spring(response: 0.4, dampingFraction: 0.7))` pour les transitions UI autour des animations Lottie
+- **Haptics** : coupler les moments clés des animations avec `UIImpactFeedbackGenerator` (celebrate → .heavy, encourage → .light)
+
+### Intégration SwiftUI type
+```swift
+import Lottie
+
+struct PatchiAnimatedView: View {
+    let state: PatchiState
+    
+    var body: some View {
+        LottieView(animation: .named("patchi_\(state.animationName)"))
+            .playing(loopMode: state.isLooping ? .loop : .playOnce)
+            .frame(width: 200, height: 200)
+    }
+}
+```
+
 ## Règles
 
 - Lire le PRD (`.taskmaster/docs/prd.md`) au début de chaque conversation
-- Toutes les données sensibles en local uniquement (SwiftData)
+- Les données sensibles transitent par Supabase (HTTPS, RLS enforced) et sont cachées en local SwiftData pour l'offline
+- Jamais stocker la `service_role` key Supabase dans le client — seule la `publishable` key est OK
 - Ne jamais utiliser `rm` — utiliser `trash` à la place
 - Utiliser `/swiftui-pro` pour review le code SwiftUI
 - Utiliser `/verification-before-completion` avant de commit
+- **Après chaque `xcodegen generate`** : ré-écrire `Patchi/Patchi.entitlements` avec Sign in with Apple (XcodeGen l'écrase)
