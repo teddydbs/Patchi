@@ -34,6 +34,21 @@ enum PatchiExpression: String, CaseIterable, Identifiable {
         "patchi_\(rawValue)"
     }
 
+    /// Nom du fichier Lottie dans Resources/Animations/
+    var lottieAnimationName: String {
+        "patchi_\(rawValue)"
+    }
+
+    /// Les animations idle/neutres tournent en boucle, les réactions jouent une fois
+    var isLooping: Bool {
+        switch self {
+        case .neutral, .calm, .sleeping, .thinking:
+            true
+        default:
+            false
+        }
+    }
+
     /// SF Symbol de fallback tant que les assets ne sont pas intégrés
     var fallbackSymbol: String {
         switch self {
