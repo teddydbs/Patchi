@@ -37,7 +37,7 @@ struct ReadLetterView: View {
             Spacer()
 
             EmotionBubble(
-                emotion: .chanceux,
+                emotion: .nostalgique,
                 text: "La lettre est arrivée. Elle t'attendait.",
                 size: .large,
                 style: .emotional

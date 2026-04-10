@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainTabView: View {
     @Environment(AppState.self) private var appState
+    @State private var network = NetworkMonitor.shared
     @State private var showNewEntryMenu = false
     @State private var showCheckIn = false
     @State private var showNewDecision = false
@@ -62,6 +63,24 @@ struct MainTabView: View {
                 )
             }
         }
+        .overlay(alignment: .top) {
+            if !network.isConnected {
+                HStack(spacing: 6) {
+                    Image(systemName: "wifi.slash")
+                        .font(.caption)
+                    Text("Mode hors ligne")
+                        .font(.caption.weight(.medium))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.mdTextGray.opacity(0.9))
+                .clipShape(Capsule())
+                .padding(.top, 4)
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .animation(.spring(duration: 0.3), value: network.isConnected)
+            }
+        }
         .fullScreenCover(isPresented: $showCheckIn) {
             CheckInView()
         }
@@ -105,7 +124,10 @@ private struct NewEntryMenuOverlay: View {
                     color: .kokoraOrange
                 ) {
                     isPresented = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { onCheckIn() }
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(200))
+                        onCheckIn()
+                    }
                 }
                 .transition(.asymmetric(
                     insertion: .move(edge: .bottom).combined(with: .opacity),
@@ -119,7 +141,10 @@ private struct NewEntryMenuOverlay: View {
                     color: .accentPurple
                 ) {
                     isPresented = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { onDecision() }
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(200))
+                        onDecision()
+                    }
                 }
                 .transition(.asymmetric(
                     insertion: .move(edge: .bottom).combined(with: .opacity),
@@ -133,7 +158,10 @@ private struct NewEntryMenuOverlay: View {
                     color: .accentAmber
                 ) {
                     isPresented = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { onLetter() }
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(200))
+                        onLetter()
+                    }
                 }
                 .transition(.asymmetric(
                     insertion: .move(edge: .bottom).combined(with: .opacity),

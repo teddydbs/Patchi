@@ -55,11 +55,10 @@ struct VerdictView: View {
 
             Spacer()
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
-                    viewModel.isRevealed = true
-                }
+        .task {
+            try? await Task.sleep(for: .milliseconds(3000))
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                viewModel.isRevealed = true
             }
         }
     }
@@ -192,10 +191,9 @@ struct VerdictView: View {
         }
         .padding(20)
         .onTapGesture { dismiss() }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
-                dismiss()
-            }
+        .task {
+            try? await Task.sleep(for: .milliseconds(3500))
+            dismiss()
         }
     }
 }

@@ -42,8 +42,9 @@ struct HeatmapGridView: View {
     private func animateCells() {
         visibleCount = 0
         let totalCells = days.count
-        for i in 0..<totalCells {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.015) {
+        Task { @MainActor in
+            for i in 0..<totalCells {
+                try? await Task.sleep(for: .milliseconds(15))
                 withAnimation(.easeOut(duration: 0.2)) {
                     visibleCount = i + 1
                 }

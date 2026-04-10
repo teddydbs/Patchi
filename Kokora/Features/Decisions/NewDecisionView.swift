@@ -146,10 +146,9 @@ struct NewDecisionView: View {
         }
         .onTapGesture { dismiss() }
         .transition(.opacity)
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                dismiss()
-            }
+        .task {
+            try? await Task.sleep(for: .milliseconds(2500))
+            dismiss()
         }
     }
 }

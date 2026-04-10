@@ -135,10 +135,9 @@ struct WriteLetterView: View {
         }
         .padding(20)
         .onTapGesture { dismiss() }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
-                dismiss()
-            }
+        .task {
+            try? await Task.sleep(for: .milliseconds(3500))
+            dismiss()
         }
     }
 }

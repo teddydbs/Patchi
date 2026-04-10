@@ -91,6 +91,12 @@ struct JournalView: View {
                 }
             }
             .toolbar(.hidden, for: .navigationBar)
+            .onChange(of: appState.journalDate) { _, newDate in
+                guard let date = newDate else { return }
+                viewModel.showAllEntries = false
+                viewModel.selectedDate = date
+                appState.journalDate = nil
+            }
         }
     }
 

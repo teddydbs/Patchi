@@ -52,9 +52,8 @@ struct QuotesFeedView: View {
                     }
                 }
 
-                FilterChipDS(label: "Favoris", icon: "heart.fill", isSelected: false) {
-                    // TODO: Vue favoris
-                }
+                // Favoris : masqué en attente d'implémentation
+                // FilterChipDS(label: "Favoris", icon: "heart.fill", isSelected: false) { }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 8)

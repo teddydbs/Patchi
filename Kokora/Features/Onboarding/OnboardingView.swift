@@ -1,7 +1,10 @@
-import SwiftUI
-import SwiftData
 import AuthenticationServices
 import CryptoKit
+import OSLog
+import SwiftData
+import SwiftUI
+
+private let logger = Logger(subsystem: "com.kokora.app", category: "Onboarding")
 
 struct OnboardingView: View {
     @Environment(\.modelContext) private var modelContext
@@ -168,7 +171,7 @@ struct OnboardingView: View {
                     let nsError = error as NSError
                     let isCancellation = nsError.domain == "com.google.GIDSignIn" && nsError.code == -5
                     if !isCancellation {
-                        print("[Login] Google sign-in failed: \(error.localizedDescription)")
+                        logger.error("Google sign-in failed: \(error.localizedDescription, privacy: .public)")
                         Haptics.warning()
                         authErrorMessage = AuthService.friendlyMessage(for: error)
                         showAuthErrorAlert = true
@@ -243,7 +246,7 @@ struct OnboardingView: View {
                     }
                 } catch {
                     await MainActor.run {
-                        print("[Login] Supabase Apple sign-in failed: \(error.localizedDescription)")
+                        logger.error("Supabase Apple sign-in failed: \(error.localizedDescription, privacy: .public)")
                         Haptics.warning()
                         authErrorMessage = AuthService.friendlyMessage(for: error)
                         showAuthErrorAlert = true
@@ -256,7 +259,7 @@ struct OnboardingView: View {
             // Annulation utilisateur ou erreur réseau. Pas d'alerte si cancel.
             let nsError = error as NSError
             if nsError.code != ASAuthorizationError.canceled.rawValue {
-                print("[Login] Sign in with Apple failed: \(error.localizedDescription)")
+                logger.error("Sign in with Apple failed: \(error.localizedDescription, privacy: .public)")
                 Haptics.warning()
                 authErrorMessage = AuthService.friendlyMessage(for: error)
                 showAuthErrorAlert = true

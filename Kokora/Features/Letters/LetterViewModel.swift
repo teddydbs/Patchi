@@ -50,9 +50,11 @@ final class LetterViewModel {
     }
 
     /// Animation d'ouverture
+    @MainActor
     func openLetter() {
         isOpening = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(1500))
             withAnimation(.easeInOut(duration: 0.6)) {
                 self.isOpened = true
             }

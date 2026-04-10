@@ -158,42 +158,49 @@ struct HomeView: View {
 
         return HStack(spacing: 0) {
             ForEach(weekDays, id: \.self) { date in
-                VStack(spacing: 8) {
-                    Text(viewModel.dayLetter(date))
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Color.mdTextLight)
-                        .textCase(.uppercase)
+                Button {
+                    Haptics.light()
+                    appState.journalDate = date
+                    appState.selectedTab = .journal
+                } label: {
+                    VStack(spacing: 8) {
+                        Text(viewModel.dayLetter(date))
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Color.mdTextLight)
+                            .textCase(.uppercase)
 
-                    let mood = viewModel.moodScore(on: date, in: checkIns)
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(mood != nil ? Color.moodVivid(mood!) : Color.mdBgSubtle)
-                            .frame(width: 42, height: 42)
+                        let mood = viewModel.moodScore(on: date, in: checkIns)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(mood != nil ? Color.moodVivid(mood!) : Color.mdBgSubtle)
+                                .frame(width: 42, height: 42)
 
-                        // Illustration d'émotion selon l'humeur
-                        if let mood {
-                            Image(Emotion.forMoodScore(mood).imageName)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 30, height: 30)
-                        } else {
-                            Image("emotion_seul")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 26, height: 26)
-                                .opacity(0.3)
-                        }
-                    }
-                    .overlay(
-                        Group {
-                            if date.isToday {
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(Color.mdTextBlack, lineWidth: 2.5)
-                                    .frame(width: 42, height: 42)
+                            // Illustration d'émotion selon l'humeur
+                            if let mood {
+                                Image(Emotion.forMoodScore(mood).imageName)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 30, height: 30)
+                            } else {
+                                Image("emotion_seul")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 26, height: 26)
+                                    .opacity(0.3)
                             }
                         }
-                    )
+                        .overlay(
+                            Group {
+                                if date.isToday {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(Color.mdTextBlack, lineWidth: 2.5)
+                                        .frame(width: 42, height: 42)
+                                }
+                            }
+                        )
+                    }
                 }
+                .buttonStyle(.plain)
                 .frame(maxWidth: .infinity)
             }
         }

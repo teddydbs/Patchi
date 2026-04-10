@@ -1,5 +1,8 @@
+import OSLog
 import StoreKit
 import SwiftData
+
+private let logger = Logger(subsystem: "com.kokora.app", category: "StoreKit")
 
 @Observable
 final class StoreKitService {
@@ -37,7 +40,7 @@ final class StoreKitService {
             let products = try await Product.products(for: [productId])
             await MainActor.run { premiumProduct = products.first }
         } catch {
-            print("[StoreKit] Erreur chargement produits: \(error)")
+            logger.error("Product load failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 
